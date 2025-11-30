@@ -54,7 +54,7 @@ $MSG → \;$```"^[a-zA-Z0-9 ]{1,100}$"```
 
 $ID\_DEVICE →$ ```^[a-zA-Z]{1,100}$```
 
-$ID\_OBS →$ ```^[a-zA-Z_][a-zA-Z0-9_]{0,99}$```
+$ID\_OBS →$ ```^[a-zA-Z][a-zA-Z0-9]{0,99}$```
 
 $AND →$ ```^AND$```
 
@@ -65,12 +65,13 @@ $AND →$ ```^AND$```
 *Obs.: Para simplificações na aplicação usamos expressões regulares em algumas regras da gramática escritas em Regex*
 
 ### 1.1. Mudanças na Gramática
-1. $CMD\_SEC$ foi trocado na primeira regra por $CMD\_LIST$ uma vez que $CMD\_SEC$ tinha apenas uma regra que o equivalava a $CMD\_LIST$. Logo, foi feita uma simples substituição.
+$CMD\_SEC$ foi trocado na primeira regra por $CMD\_LIST$ uma vez que $CMD\_SEC$ tinha apenas uma regra que o equivalava a $CMD\_LIST$. Logo, foi feita uma simples substituição.
 
-2. Todas as regras a partir de (incluindo) $NUM$ são novas regras que definem os terminais das variáveis, operadores lógicos, etc. Para descrever as expressões utiliza-se Regex.
+Todas as regras a partir de (incluindo) $NUM$ são novas regras que definem os terminais das variáveis, operadores lógicos, etc. Para descrever as expressões utiliza-se Regex.
 
 ## 2. Funcionamento do Analisador
 
+### 2.1. Leitura do arquivo
 O analisador (analisador.py) quando rodado lê do terminal o nome do arquivo .obsact a ser lido e então gera um arquivo **.py** correspondente (compilado) de mesmo nome. No início de cada arquivo são definidas as funções padrão da linguagem.
 
 ```
@@ -89,3 +90,24 @@ def alerta(id_device, msg, var=None):
         print(msg + " " + str(var))
 ```
 
+### 2.2. Analisador léxico
+
+Para a análise léxica primeiramente definimos a lista de tokens que será usada:
+
+```
+tokens = (
+    'DISPOSITIVOS', 'FIMDISPOSITIVOS', 'DEF', 'QUANDO', 'SENAO', 'AND', 'EXECUTE', 'EM', 'ALERTA_PARA', 'DIFUNDIR', 'LIGAR', 'DESLIGAR', 'TRUE', 'FALSE', 'ID', 'ID_OBS', 'NUM', 'MSG', 'PT_VIRG', 'DOIS_PONTOS', 'IGUAL', 'SETINHA', 'VIRGULA', 'ABRE_COL', 'FECHA_COL', 'OP_NE', 'OP_EQ', 'OP_GT', 'OP_LT', 'OP_GE', 'OP_LE'
+)
+```
+
+Então definimos as palavras reservadas como constam na gramática. Como na própria gramática já 
+são definidos os regex de cada expressão, nao será explicada cada expressão.
+
+A parte mais importante deste analisador é que, realisando alguns testes, foi percebido
+que ele reconhecia qualquer `ID` como `ID_DEVICE`, quando poderia ser, na realidade, `ID_OBS`
+também. Ou seja, não é possível para o lexer diferenciar entre os dois `ID`s; este discernimento
+deve ser feito na parte da análise sintática posteriormente.
+
+De resto, o importante foram alguns testes feitos para *fine-tune* o analisador léxico
+para não permitir operadores de tamanho maior que 1, variáveis (IDs) começados em número,
+etc.
