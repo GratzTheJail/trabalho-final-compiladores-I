@@ -6,47 +6,48 @@
 ## 1. Gramática
 A gramática que foi fornecida no exercício foi:
 
-$$
-PROGRAM → DEV_SEC CMD_SEC
+$PROGRAM → DEV\_SEC \;\; CMD\_SEC$
 
-DEV_SEC ➡ *dispositivos :* DEV_LIST *fimdispositivos*
-$$
+$DEV\_SEC → dispositivos : DEV\_LIST \; fimdispositivos$
 
-DEV_LIST ➡ DEV ICE DEV LIST | DEV ICE
+$DEV\_LIST → DEVICE \;\; DEV\_LIST \;|\; DEVICE$
 
-DEV ICE ➡ ID DEV ICE
+$DEVICE → ID\_DEVICE \;|\; ID\_DEVICE \; [ID\_OBS]$
 
-DEV ICE ➡ ID DEV ICE [ID OBS]
+$CMD\_SEC → CMD\_LIST$
 
-CM D SEC ➡ CM D LIST
+$CMD\_LIST → CMD;\; CMD\_LIST \;|\; CM D;$
 
-CM D LIST ➡ CM D; CM D LIST | CM D;
+$CMD → ATTRIB \;|\; OBSACT \;|\; ACT$
 
-CM D ➡ AT T RIB | OBSACT | ACT
+$AT T RIB → def \; ID\_OBS = V AL$
 
-AT T RIB ➡ def ID OBS = V AL
+$OBSACT → quando\; OBS : ACT$
 
-OBSACT ➡ quando OBS : ACT
+$OBSACT → quando \;OBS : ACT\; senao \;ACT$
 
-OBSACT ➡ quando OBS : ACT senao ACT
+$OBS → ID\_OBS \;\;OPLOGIC \;\;VAL$
 
-OBS ➡ ID OBS OP LOGIC V AL
+$OBS → ID\_OBS \;\;OPLOGIC \;\;V AL \;\;AN D\;\; OBS$
 
-OBS ➡ ID OBS OP LOGIC V AL AN D OBS
+$V AL → N U M \;|\; BOOL$
 
-V AL ➡ N U M | BOOL
+$ACT → execute \;\;ACT ION\;\; em\;\; ID\_DEV ICE$
 
-ACT ➡ execute ACT ION em ID DEV ICE
+$ACT → alerta \;para \;\;ID\_DEV ICE : M SG$
 
-ACT ➡ alerta para ID DEV ICE : M SG
+$ACT → alerta \;para \;\;ID\_DEV ICE : M SG , ID\_OBS$
 
-ACT ➡ alerta para ID DEV ICE : M SG , ID OBS
+$ACT → dif undir : M SG \;−> [DEV\_LIST\_N ]$
 
-ACT ➡ dif undir : M SG − > [DEV LIST N ]
+$ACT → dif undir : M SG \;\;ID\_OBS \;− > [DEV\_LIST\_N ]$
 
-ACT ➡ dif undir : M SG ID OBS − > [DEV LIST N ]
+$ACT ION → ligar \;|\; desligar$
 
-ACT ION ➡ ligar | desligar
+$DEV\_LIST\_N → ID\_DEV ICE \;|\; ID\_DEV ICE ,\; DEV\_LIST\_N$
 
-DEV LIST N ➡ ID DEV ICE | ID DEV ICE , DEV LIST N
+- Trocar CMD_SEC por CMD_LIST
 
+- Adicionar regras para strings e nomes de variáveis (ER)
+
+testeee
