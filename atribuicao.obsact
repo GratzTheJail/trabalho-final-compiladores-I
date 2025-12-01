@@ -1,0 +1,6 @@
+dispositivos: 
+    Termometro[temperatura] 
+    Ventilador[status]
+fimdispositivos
+
+def status = True;

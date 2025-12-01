@@ -117,7 +117,9 @@ e o arquivo compilado em python não é escrito.
 
 ### 2.3. Analisador Sintático
 
-#### 2.3.1. Lista de Dispositivos
+Antes de entender as regras específicas da linguagem aqui aplicadas, precisamos entender como lidamos com erros: Caso o sistema encontre algum erro (seja léxico, seja sintático) ele aborta. Como o intuito do programa é ser apenas um compilador esta funcionalidade tem razão de ser; ao encontrar algum erro não se deve escrever nada no arquivo de saída. 
+
+#### **2.3.1. Lista de Dispositivos**
 
 A funcionalidade mais elementar da linguagem ObsAct é a criação dos devices
 e suas respectivas variáveis (`ID_OBS`). Para a análise sintática desta parte
@@ -135,7 +137,7 @@ $ID\_DEVICE →$ ```^[a-zA-Z]{1,100}$```
 
 $ID\_OBS →$ ```^[a-zA-Z][a-zA-Z0-9]{0,99}$```
 
-Para a criação da aplicação (inicialmente apenas desta parte criamos as regras):
+Para a criação da aplicação (inicialmente apenas desta parte criamos as regras, note que a gramática está incompleta por enquanto e será completada posteriormente):
 
 ```
 def p_program(p):
@@ -164,22 +166,54 @@ def p_device(p):
         symbol_table[p[1]] = 'ID_DEVICE'
         p[0] = ('device', p[1])
     else:
-        # ID_DEVICE com ID_OBS
+        # ID_DEVICE com ID_OBSos componentes
         symbol_table[p[1]] = 'ID_DEVICE'
         symbol_table[p[3]] = 'ID_OBS'
         p[0] = ('device_with_obs', p[1], p[3])
 
 def p_id_device(p):
-    'ID_DEVICE : ID'
-    p[0] = p[1]
+    ...
 
 def p_id_obs(p):
-    'ID_OBS : ID'
-    p[0] = p[1]
+    ...
 ```
 
 Além de uma regra de erro que captura qualquer inconsistência e aborta o 
 programa. 
+
+Para garantir a consistência de ambos os tipos de `ID`, tanto `ID_OBS` quanto `ID_DEVICE`, foram adicionados verificações adicionais nas funções próprias. `ID_DEVICE`, por exemplo, não pode conter números, e esta verificação é feita. (Além é claro de que, como não podem ser palavras reservadas é necessário realizar também esta verificação.)
+
+```
+def p_id_device(p):
+    'ID_DEVICE : ID'
+    # Verifica se é uma palavra reservada
+    reserved_words = [...]
+    if p[1] in reserved_words:
+        print(f"ERRO semântico: '{p[1]}' é uma palavra reservada, não pode ser nome de dispositivo")
+        ...
+    # Verifica se contém apenas letras (a-z, A-Z)
+    elif not p[1].isalpha():
+        print(f"ERRO semântico: '{p[1]}' não é um nome de dispositivo válido (deve conter apenas letras, sem números)")
+        ...
+    # Verifica se o comprimento está entre 1 e 100 caracteres
+    elif len(p[1]) < 1 or len(p[1]) > 100:
+        print(f"ERRO semântico: '{p[1]}' tem comprimento inválido ({len(p[1])}). Deve ter entre 1 e 100 caracteres.")
+        ...
+    else:
+        p[0] = p[1]
+
+def p_id_obs(p):
+    'ID_OBS : ID'
+    # Verifica se é uma palavra reservada
+    reserved_words = [...]
+    if p[1] in reserved_words:
+        print(f"ERRO semântico: '{p[1]}' é uma palavra reservada, não pode ser nome de observável")
+        ...
+    else:
+        p[0] = p[1]
+```
+
+
 
 Por padrão o compilador inicializa todas as variáveis (definidas na seção de
 dispositivos) como variáveis em python com o nome correspondente e tendo
@@ -191,5 +225,81 @@ for var_name, var_type in symbol_table.items():
     codigo_python += f'{var_name} = "{var_name}"  # {var_type}\n'
 ```
 
-#### 2.3.2. Comandos
+#### **2.3.2. Comandos**
+
+- MUDAR A REGRA DE `ID_DEVICE` PARA CHECAR SE TEM NÚMERO OU NÃO 
+
+- REGRA `ID_OBS` IGUAL ZERO
+
+1) **Atribuição**
+
+Para o comando de atribuição foram adicionadas algumas regras. (Por enquanto a gramática está incompleta, pois só foi aplicado o comando de atribuição).
+
+```
+def p_cmd_list(p):
+    '''CMD_LIST : CMD PT_VIRG CMD_LIST
+                | CMD PT_VIRG'''
+    if len(p) == 4:
+        p[0] = [p[1]] + p[3]
+    else:
+        p[0] = [p[1]]
+
+def p_cmd(p):
+    '''CMD : ATTRIB'''
+    p[0] = p[1]
+
+def p_attrib(p):
+    'ATTRIB : DEF ID_OBS IGUAL VAL'
+    # Verifica se o ID_OBS foi declarado na seção de dispositivos
+    id_name = p[2]
+    if id_name and id_name in symbol_table and symbol_table[id_name] == 'ID_OBS':
+        assignments.append((id_name, p[4]))
+        p[0] = ('attrib', id_name, p[4])
+        print(f"Atribuição válida: {id_name} = {p[4]}")
+    else:
+        if id_name:
+            if id_name not in symbol_table:
+                print(f"ERRO semântico: '{id_name}' não foi declarado")
+            elif symbol_table[id_name] != 'ID_OBS':
+                print(f"ERRO semântico: '{id_name}' não é um observável (é {symbol_table[id_name]})")
+            print("Arquivo .py NÃO gerado devido a erros na análise!")
+            sys.exit(1)
+        p[0] = None
+
+def p_val(p):
+    '''VAL : NUM
+           | BOOL'''
+    p[0] = p[1]
+
+def p_bool(p):
+    '''BOOL : TRUE
+            | FALSE'''
+    p[0] = p[1] == 'True'  # Converte para valor booleano Python
+```
+
+Para fazer alguma atribuição é checado se o símbolo consta no dicionário existente de símbolos e se é `ID_OBS`. As atribuições são salvas em uma lista correspondente (`assignments = []`). Esta lógica será posteriormente reformulada para abarcar outros possíveis comandos.
+
+As atribuições são então escritas após as definições da seção de dispositivos. Para garantir que as variáveis `ID_OBS` são sempre iguais a 0 quando não há atribuição como foi pedido elas são sempre inicializadas como sendo iguais a zero e posteriormente, se houver atribuição, seu valor é mudado como consta nela.
+
+```
+# Adiciona as declarações de variáveis para cada símbolo encontrado
+        for var_name, var_type in symbol_table.items():
+            if var_name:
+                if var_type == 'ID_DEVICE':
+                    codigo_python += f'{var_name} = "{var_name}"  # {var_type}\n'
+                elif var_type == 'ID_OBS':
+                    # Inicializa ID_OBS com 0 por padrão
+                    codigo_python += f'{var_name} = 0  # {var_type}\n'
+
+        codigo_python += '\n# Atribuições da seção de comandos\n'
+        # Adiciona as atribuições encontradas
+        for var_name, value in assignments:
+            if var_name and var_name in symbol_table:
+                value_str = str(value)
+                codigo_python += f'{var_name} = {value_str}\n'
+```
+
+Como o próprio parser garante que os números e os booleanos sejam escritos corretamente (também como são escritos em python), não há necessidade de qualquer conversão deste tipo.
+
+2. **Ação**
 

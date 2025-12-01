@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'ABRE_COL ALERTA_PARA AND DEF DESLIGAR DIFUNDIR DISPOSITIVOS DOIS_PONTOS EM EXECUTE FALSE FECHA_COL FIMDISPOSITIVOS ID IGUAL LIGAR MSG NUM OP_EQ OP_GE OP_GT OP_LE OP_LT OP_NE PT_VIRG QUANDO SENAO SETINHA TRUE VIRGULAprogram : DEV_SECDEV_SEC : DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOSDEV_LIST : DEVICE DEV_LIST\n| DEVICEDEVICE : ID_DEVICE\n| ID_DEVICE ABRE_COL ID_OBS FECHA_COLID_DEVICE : IDID_OBS : ID'
+_lr_signature = 'ABRE_COL ALERTA_PARA AND DEF DESLIGAR DIFUNDIR DISPOSITIVOS DOIS_PONTOS EM EXECUTE FALSE FECHA_COL FIMDISPOSITIVOS ID IGUAL LIGAR MSG NUM OP_EQ OP_GE OP_GT OP_LE OP_LT OP_NE PT_VIRG QUANDO SENAO SETINHA TRUE VIRGULAprogram : DEV_SEC CMD_LISTDEV_SEC : DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOSDEV_LIST : DEVICE DEV_LIST\n| DEVICEDEVICE : ID_DEVICE\n| ID_DEVICE ABRE_COL ID_OBS FECHA_COLID_DEVICE : IDID_OBS : IDCMD_LIST : CMD PT_VIRG CMD_LIST\n| CMD PT_VIRGCMD : ATTRIBATTRIB : DEF ID_OBS IGUAL VALVAL : NUM\n| BOOLBOOL : TRUE\n| FALSE'
     
-_lr_action_items = {'DISPOSITIVOS':([0,],[3,]),'$end':([1,2,9,],[0,-1,-2,]),'DOIS_PONTOS':([3,],[4,]),'ID':([4,6,7,8,11,14,],[8,8,-5,-7,13,-6,]),'FIMDISPOSITIVOS':([5,6,7,8,10,14,],[9,-4,-5,-7,-3,-6,]),'ABRE_COL':([7,8,],[11,-7,]),'FECHA_COL':([12,13,],[14,-8,]),}
+_lr_action_items = {'DISPOSITIVOS':([0,],[3,]),'$end':([1,4,9,16,],[0,-1,-10,-9,]),'DEF':([2,9,18,],[7,7,-2,]),'DOIS_PONTOS':([3,],[8,]),'PT_VIRG':([5,6,21,22,23,24,25,],[9,-11,-12,-13,-14,-15,-16,]),'ID':([7,8,13,14,15,20,27,],[11,15,15,-5,-7,11,-6,]),'IGUAL':([10,11,],[17,-8,]),'FECHA_COL':([11,26,],[-8,27,]),'FIMDISPOSITIVOS':([12,13,14,15,19,27,],[18,-4,-5,-7,-3,-6,]),'ABRE_COL':([14,15,],[20,-7,]),'NUM':([17,],[22,]),'TRUE':([17,],[24,]),'FALSE':([17,],[25,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'program':([0,],[1,]),'DEV_SEC':([0,],[2,]),'DEV_LIST':([4,6,],[5,10,]),'DEVICE':([4,6,],[6,6,]),'ID_DEVICE':([4,6,],[7,7,]),'ID_OBS':([11,],[12,]),}
+_lr_goto_items = {'program':([0,],[1,]),'DEV_SEC':([0,],[2,]),'CMD_LIST':([2,9,],[4,16,]),'CMD':([2,9,],[5,5,]),'ATTRIB':([2,9,],[6,6,]),'ID_OBS':([7,20,],[10,26,]),'DEV_LIST':([8,13,],[12,19,]),'DEVICE':([8,13,],[13,13,]),'ID_DEVICE':([8,13,],[14,14,]),'VAL':([17,],[21,]),'BOOL':([17,],[23,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -27,12 +27,20 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> program","S'",1,None,None,None),
-  ('program -> DEV_SEC','program',1,'p_program','analisador.py',179),
-  ('DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS','DEV_SEC',4,'p_dev_sec','analisador.py',183),
-  ('DEV_LIST -> DEVICE DEV_LIST','DEV_LIST',2,'p_dev_list','analisador.py',189),
-  ('DEV_LIST -> DEVICE','DEV_LIST',1,'p_dev_list','analisador.py',190),
-  ('DEVICE -> ID_DEVICE','DEVICE',1,'p_device','analisador.py',197),
-  ('DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL','DEVICE',4,'p_device','analisador.py',198),
-  ('ID_DEVICE -> ID','ID_DEVICE',1,'p_id_device','analisador.py',210),
-  ('ID_OBS -> ID','ID_OBS',1,'p_id_obs','analisador.py',214),
+  ('program -> DEV_SEC CMD_LIST','program',2,'p_program','analisador.py',172),
+  ('DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS','DEV_SEC',4,'p_dev_sec','analisador.py',177),
+  ('DEV_LIST -> DEVICE DEV_LIST','DEV_LIST',2,'p_dev_list','analisador.py',183),
+  ('DEV_LIST -> DEVICE','DEV_LIST',1,'p_dev_list','analisador.py',184),
+  ('DEVICE -> ID_DEVICE','DEVICE',1,'p_device','analisador.py',191),
+  ('DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL','DEVICE',4,'p_device','analisador.py',192),
+  ('ID_DEVICE -> ID','ID_DEVICE',1,'p_id_device','analisador.py',204),
+  ('ID_OBS -> ID','ID_OBS',1,'p_id_obs','analisador.py',216),
+  ('CMD_LIST -> CMD PT_VIRG CMD_LIST','CMD_LIST',3,'p_cmd_list','analisador.py',228),
+  ('CMD_LIST -> CMD PT_VIRG','CMD_LIST',2,'p_cmd_list','analisador.py',229),
+  ('CMD -> ATTRIB','CMD',1,'p_cmd','analisador.py',236),
+  ('ATTRIB -> DEF ID_OBS IGUAL VAL','ATTRIB',4,'p_attrib','analisador.py',240),
+  ('VAL -> NUM','VAL',1,'p_val','analisador.py',253),
+  ('VAL -> BOOL','VAL',1,'p_val','analisador.py',254),
+  ('BOOL -> TRUE','BOOL',1,'p_bool','analisador.py',258),
+  ('BOOL -> FALSE','BOOL',1,'p_bool','analisador.py',259),
 ]

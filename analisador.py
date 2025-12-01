@@ -58,7 +58,7 @@ lexical_error_occurred = False
 
 def t_INVALID_OP(t):
     r'={3,}|!={2,}|>{2,}|<{2,}|={1,2}[^=\s]|[^!><=]=[^=\s]'
-    print(f"Erro léxico: operador inválido '{t.value}'")
+    print(f"ERRO léxico: operador inválido '{t.value}'")
     t.lexer.skip(len(t.value))
     
     global lexical_error_occurred
@@ -117,35 +117,6 @@ def t_NUM(t):
     t.value = int(t.value)
     return t
 
-# def t_ID_DEVICE(t):
-#     r'[a-zA-Z]{1,100}'
-#     # Verifica se não é uma palavra reservada
-#     reserved = {
-#         'dispositivos': 'DISPOSITIVOS',
-#         'fimdispositivos': 'FIMDISPOSITIVOS',
-#         'def': 'DEF',
-#         'quando': 'QUANDO',
-#         'senao': 'SENAO',
-#         'AND': 'AND',
-#         'execute': 'EXECUTE',
-#         'em': 'EM',
-#         'alerta para': 'ALERTA_PARA',
-#         'difundir': 'DIFUNDIR',
-#         'ligar': 'LIGAR',
-#         'desligar': 'DESLIGAR',
-#         'True': 'TRUE',
-#         'False': 'FALSE'
-#     }
-#     if t.value in reserved:
-#         t.type = reserved[t.value]
-#     else:
-#         t.type = 'ID_DEVICE'
-#     return t
-
-# def t_ID_OBS(t):
-#     r'[a-zA-Z_][a-zA-Z0-9_]{0,99}'
-#     return t
-
 
 # Como o lexer não diferencia entre ID_DEVICE e ID_OBS, usamos apenas um token ID genérico
 # que será classificado corretamente posteriormente.
@@ -190,14 +161,17 @@ lexer = lex.lex()
 ## --------- ANÁLISE SINTÁTICA ---------
 # Dicionário para armazenar as variáveis encontradas
 symbol_table = {}
+# Lista para armazenar as atribuições encontradas
+assignments = []
 
 syntax_error_occurred = False
 
 ## ---------- ANÁLISE SINTÁTICA PARA DEV_SEC --------
 
 def p_program(p):
-    '''program : DEV_SEC'''
-    p[0] = p[1]
+    '''program : DEV_SEC CMD_LIST'''
+    p[0] = (p[1], p[2])
+    print("Análise sintática completa concluída com sucesso!")
 
 def p_dev_sec(p):
     'DEV_SEC : DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS'
@@ -228,82 +202,96 @@ def p_device(p):
 
 def p_id_device(p):
     'ID_DEVICE : ID'
-    p[0] = p[1]
+    # Verifica se é uma palavra reservada
+    reserved_words = ['dispositivos', 'fimdispositivos', 'def', 'quando', 'senao', 
+                     'AND', 'execute', 'em', 'alerta', 'para', 'difundir', 
+                     'ligar', 'desligar', 'True', 'False']
+    if p[1] in reserved_words:
+        print(f"ERRO semântico: '{p[1]}' é uma palavra reservada, não pode ser nome de dispositivo")
+        print("Arquivo .py NÃO gerado devido a erros na análise!")
+        p[0] = None
+        sys.exit(1)
+    # Verifica se contém apenas letras (a-z, A-Z)
+    elif not p[1].isalpha():
+        print(f"ERRO semântico: '{p[1]}' não é um nome de dispositivo válido (deve conter apenas letras, sem números)")
+        print("Arquivo .py NÃO gerado devido a erros na análise!")
+        p[0] = None
+        sys.exit(1)
+    # Verifica se o comprimento está entre 1 e 100 caracteres
+    elif len(p[1]) < 1 or len(p[1]) > 100:
+        print(f"ERRO semântico: '{p[1]}' tem comprimento inválido ({len(p[1])}). Deve ter entre 1 e 100 caracteres.")
+        print("Arquivo .py NÃO gerado devido a erros na análise!")
+        p[0] = None
+        sys.exit(1)
+    else:
+        p[0] = p[1]
 
 def p_id_obs(p):
     'ID_OBS : ID'
+    # Verifica se é uma palavra reservada
+    reserved_words = ['dispositivos', 'fimdispositivos', 'def', 'quando', 'senao', 
+                     'AND', 'execute', 'em', 'alerta', 'para', 'difundir', 
+                     'ligar', 'desligar', 'True', 'False']
+    if p[1] in reserved_words:
+        print(f"ERRO semântico: '{p[1]}' é uma palavra reservada, não pode ser nome de observável")
+        print("Arquivo .py NÃO gerado devido a erros na análise!")
+        p[0] = None
+        sys.exit(1)
+    else:
+        p[0] = p[1]
+
+def p_cmd_list(p):
+    '''CMD_LIST : CMD PT_VIRG CMD_LIST
+                | CMD PT_VIRG'''
+    if len(p) == 4:
+        p[0] = [p[1]] + p[3]
+    else:
+        p[0] = [p[1]]
+
+def p_cmd(p):
+    '''CMD : ATTRIB'''
     p[0] = p[1]
+
+def p_attrib(p):
+    'ATTRIB : DEF ID_OBS IGUAL VAL'
+    # Verifica se o ID_OBS foi declarado na seção de dispositivos
+    id_name = p[2]
+    if id_name and id_name in symbol_table and symbol_table[id_name] == 'ID_OBS':
+        assignments.append((id_name, p[4]))
+        p[0] = ('attrib', id_name, p[4])
+        print(f"Atribuição válida: {id_name} = {p[4]}")
+    else:
+        if id_name:
+            if id_name not in symbol_table:
+                print(f"ERRO semântico: '{id_name}' não foi declarado")
+            elif symbol_table[id_name] != 'ID_OBS':
+                print(f"ERRO semântico: '{id_name}' não é um observável (é {symbol_table[id_name]})")
+            print("Arquivo .py NÃO gerado devido a erros na análise!")
+            sys.exit(1)
+        p[0] = None
+
+def p_val(p):
+    '''VAL : NUM
+           | BOOL'''
+    p[0] = p[1]
+
+def p_bool(p):
+    '''BOOL : TRUE
+            | FALSE'''
+    p[0] = p[1] == 'True'  # Converte para valor booleano Python
 
 def p_error(p):
     global syntax_error_occurred
     syntax_error_occurred = True
     if p:
-        print(f"Erro de sintaxe na linha {p.lineno}: token inesperado '{p.value}'")
+        print(f"ERRO de sintaxe na linha {p.lineno}: token inesperado '{p.value}'")
     else:
-        print("Erro de sintaxe: fim inesperado do arquivo")
+        print("ERRO de sintaxe: fim inesperado do arquivo")
     print("Arquivo .py NÃO gerado devido a erros na análise!")
     sys.exit(1)
 
 # Construir o parser
 parser = yacc.yacc()
-
-
-# ## ---------- PROCESSAMENTO DA SEÇÃO DEV_SEC --------
-
-# ## -------- LEITURA DO ARQUIVO .obsact --------
-# # Lê o conteúdo do arquivo
-# with open(nome_arquivo, 'r', encoding='utf-8') as f:
-#     data = f.read()
-
-# # Processa com o parser
-# try:
-#     result = parser.parse(data, lexer=lexer)
-#     print("Análise sintática da seção DEV_SEC concluída com sucesso!")
-# except Exception as e:
-#     print(f"Erro durante a análise sintática: {e}")
-
-
-# ##  -------- GERAÇÃO DO ARQUIVO FINAL .PY --------
-# # Código das funções em Python
-# codigo_python = '''def ligar(id_device):
-#     print(id_device + " ligado!")
-
-# def desligar(id_device):
-#     print(id_device + " desligado!")
-
-# def alerta(id_device, msg, var=None):
-#     if var is None:
-#         print(id_device + " recebeu o alerta:\\n")
-#         print(msg)
-#     else:
-#         print(id_device + " recebeu o alerta:\\n")
-#         print(msg + " " + str(var))
-
-# # Variáveis extraídas da seção dispositivos
-# '''
-
-# # Adiciona as declarações de variáveis para cada símbolo encontrado
-# for var_name, var_type in symbol_table.items():
-#     codigo_python += f'{var_name} = "{var_name}"  # {var_type}\n'
-
-# codigo_python += '\n# Prints das variáveis identificadas\n'
-# for var_name, var_type in symbol_table.items():
-#     codigo_python += f'print("{var_name} - {var_type}")\n'
-
-
-# # Escreve o arquivo .py
-# with open(nome_py, 'w', encoding='utf-8') as f:
-#     f.write(codigo_python)
-
-# print(f"Arquivo {nome_py} gerado com sucesso!")
-
-# ... (código anterior mantido igual)
-
-
-
-
-
-
 
 
 
@@ -314,13 +302,17 @@ parser = yacc.yacc()
 with open(nome_arquivo, 'r', encoding='utf-8') as f:
     data = f.read()
 
+symbol_table.clear()
+assignments.clear()
+
 # Processa com o parser
 try:
     result = parser.parse(data, lexer=lexer)
 
-    if not syntax_error_occurred and not lexical_error_occurred:
+    if not syntax_error_occurred and not lexical_error_occurred and result:
         print("Análise sintática da seção DEV_SEC concluída com sucesso!")
-        
+        print("Dicionário de símbolos:", symbol_table)
+        print("Atribuições encontradas:", assignments)
         ##  -------- GERAÇÃO DO ARQUIVO FINAL .PY --------
         # Código das funções em Python
         codigo_python = '''
@@ -343,11 +335,19 @@ def alerta(id_device, msg, var=None):
 
         # Adiciona as declarações de variáveis para cada símbolo encontrado
         for var_name, var_type in symbol_table.items():
-            codigo_python += f'{var_name} = "{var_name}"  # {var_type}\n'
+            if var_name:
+                if var_type == 'ID_DEVICE':
+                    codigo_python += f'{var_name} = "{var_name}"  # {var_type}\n'
+                elif var_type == 'ID_OBS':
+                    # Inicializa ID_OBS com 0 por padrão
+                    codigo_python += f'{var_name} = 0  # {var_type}\n'
 
-        codigo_python += '\n# Prints das variáveis identificadas\n'
-        for var_name, var_type in symbol_table.items():
-            codigo_python += f'print("{var_name} - {var_type}")\n'
+        codigo_python += '\n# Atribuições da seção de comandos\n'
+        # Adiciona as atribuições encontradas
+        for var_name, value in assignments:
+            if var_name and var_name in symbol_table:
+                value_str = str(value)
+                codigo_python += f'{var_name} = {value_str}\n'
 
         # Escreve o arquivo .py
         with open(nome_py, 'w', encoding='utf-8') as f:
@@ -356,11 +356,44 @@ def alerta(id_device, msg, var=None):
         print(f"Arquivo {nome_py} gerado com sucesso!")
 
 except Exception as e:
-    print(f"Erro durante a análise sintática: {e}")
+    print(f"ERRO durante a análise sintática: {e}")
     print("Arquivo .py NÃO gerado devido a erros na análise!")
     # Remove o arquivo .py se ele foi criado anteriormente
     if os.path.exists(nome_py):
         os.remove(nome_py)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
