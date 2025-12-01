@@ -111,3 +111,85 @@ deve ser feito na parte da análise sintática posteriormente.
 De resto, o importante foram alguns testes feitos para *fine-tune* o analisador léxico
 para não permitir operadores de tamanho maior que 1, variáveis (IDs) começados em número,
 etc.
+
+Caso o analisador léxico encontre alguma inconsistência o programa é abortado
+e o arquivo compilado em python não é escrito.
+
+### 2.3. Analisador Sintático
+
+#### 2.3.1. Lista de Dispositivos
+
+A funcionalidade mais elementar da linguagem ObsAct é a criação dos devices
+e suas respectivas variáveis (`ID_OBS`). Para a análise sintática desta parte
+apenas precisamos nos ater às seguintes regras:
+
+$PROGRAM → DEV\_SEC \;\; CMD\_LIST$
+
+$DEV\_SEC → dispositivos : DEV\_LIST \; fimdispositivos$
+
+$DEV\_LIST → DEVICE \;\; DEV\_LIST \;|\; DEVICE$
+
+$DEVICE → ID\_DEVICE \;|\; ID\_DEVICE \; [ID\_OBS]$
+
+$ID\_DEVICE →$ ```^[a-zA-Z]{1,100}$```
+
+$ID\_OBS →$ ```^[a-zA-Z][a-zA-Z0-9]{0,99}$```
+
+Para a criação da aplicação (inicialmente apenas desta parte criamos as regras):
+
+```
+def p_program(p):
+    '''program : DEV_SEC'''
+    p[0] = p[1]
+
+def p_dev_sec(p):
+    'DEV_SEC : DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS'
+    p[0] = p[3]
+    print("Dicionário de variáveis encontradas:")
+    print(symbol_table)
+
+def p_dev_list(p):
+    '''DEV_LIST : DEVICE DEV_LIST
+                | DEVICE'''
+    if len(p) == 3:
+        p[0] = [p[1]] + p[2]
+    else:
+        p[0] = [p[1]]
+
+def p_device(p):
+    '''DEVICE : ID_DEVICE
+              | ID_DEVICE ABRE_COL ID_OBS FECHA_COL'''
+    if len(p) == 2:
+        # Apenas ID_DEVICE
+        symbol_table[p[1]] = 'ID_DEVICE'
+        p[0] = ('device', p[1])
+    else:
+        # ID_DEVICE com ID_OBS
+        symbol_table[p[1]] = 'ID_DEVICE'
+        symbol_table[p[3]] = 'ID_OBS'
+        p[0] = ('device_with_obs', p[1], p[3])
+
+def p_id_device(p):
+    'ID_DEVICE : ID'
+    p[0] = p[1]
+
+def p_id_obs(p):
+    'ID_OBS : ID'
+    p[0] = p[1]
+```
+
+Além de uma regra de erro que captura qualquer inconsistência e aborta o 
+programa. 
+
+Por padrão o compilador inicializa todas as variáveis (definidas na seção de
+dispositivos) como variáveis em python com o nome correspondente e tendo
+como valor atribuido uma string com o próprio nome (que pode ser alterado
+posteriormente sem complicações, pois python não é estaticamente tipado).
+
+```
+for var_name, var_type in symbol_table.items():
+    codigo_python += f'{var_name} = "{var_name}"  # {var_type}\n'
+```
+
+#### 2.3.2. Comandos
+
