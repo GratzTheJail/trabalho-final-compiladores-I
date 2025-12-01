@@ -1,0 +1,10 @@
+dispositivos :
+    Monitor
+    Higrometro [ umidade ]
+fimdispositivos
+
+quando umidade < 40 AND umidade != 5 AND umidade == True: 
+    alerta para Monitor : 
+        " Ar seco detectado " 
+    senao
+        execute ligar em Higrometro;

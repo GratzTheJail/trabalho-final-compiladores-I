@@ -24,9 +24,11 @@ $OBSACT → quando\; OBS : ACT$
 
 $OBSACT → quando \;OBS : ACT\; senao \;ACT$
 
-$OBS → ID\_OBS \;\;OPLOGIC \;\;VAL$
+$OBS → OBSCOND$
 
-$OBS → ID\_OBS \;\;OPLOGIC \;\;V AL \;\;AND\;\; OBS$
+$OBS → OBSCOND \;\;AND\;\; OBS$
+
+$OBSCOND → ID\_OBS \;\;OPLOGIC \;\;VAL$
 
 $V AL → N U M \;|\; BOOL$
 
@@ -68,6 +70,8 @@ $AND →$ ```^AND$```
 $CMD\_SEC$ foi trocado na primeira regra por $CMD\_LIST$ uma vez que $CMD\_SEC$ tinha apenas uma regra que o equivalava a $CMD\_LIST$. Logo, foi feita uma simples substituição.
 
 Todas as regras a partir de (incluindo) $NUM$ são novas regras que definem os terminais das variáveis, operadores lógicos, etc. Para descrever as expressões utiliza-se Regex.
+
+Outra mudança significativa foi a mudança de `OBS` para separar a parte condicional da parte com `AND` para tratar melhor a recursão.
 
 ## 2. Funcionamento do Analisador
 
@@ -321,7 +325,9 @@ def p_cmd(p):
 
 Foram implementadas as seguintes ações, conforme a gramática:
 
-**a) Execute**: Comando para ligar ou desligar um dispositivo.
+**a) Execute**
+
+Comando para ligar ou desligar um dispositivo.
 
 
 $ACT → execute \; ACTION\; em\; ID\_DEVICE$
@@ -340,7 +346,8 @@ def p_act_execute(p):
     p[0] = ('execute', p[2], p[4])
 ```
 
-**b) Alerta**:
+**b) Alerta**
+
 Comando para enviar uma mensagem a um dispositivo, opcionalmente incluindo um observável:
 
 
@@ -396,8 +403,7 @@ def p_act_difundir_com_var(p):
     p[0] = ('difundir_com_var', p[3], p[4], p[7])  # mensagem, observável, lista de dispositivos
 ```
 
-**d) Lista de Dispositivos para Difusão**:
-Regra para processar listas de dispositivos nos comandos de difusão:
+Também foi aplicada a regra para processar listas de dispositivos nos comandos de difusão:
 
 ```python
 def p_dev_list_n(p):
@@ -414,8 +420,6 @@ def p_dev_list_n(p):
             ...
         p[0] = [p[1]] + p[3]
 ```
-
-**Geração de Código Python**
 
 Cada tipo de ação é traduzido para chamadas das funções Python definidas no início do arquivo gerado:
 
@@ -451,12 +455,143 @@ for cmd in commands:
             codigo_python += f'alerta({device}, "{msg}", {var})\n'
 ```
 
-**Verificações Semânticas**:
 Todas as ações incluem verificações semânticas para garantir que
 
-1. **Dispositivos referenciados** estejam declarados na seção `DEV_SEC`
-2. **Observáveis referenciados** estejam declarados (se aplicável)
-3. **Tipos corretos**: que um identificador usado como `ID_DEVICE` realmente seja um dispositivo, e não um observável, e vice-versa
+1. Dispositivos referenciados estejam declarados na seção `DEV_SEC`
+2. Observáveis referenciados estejam declarados (se aplicável)
+3. Tipos corretos: que um identificador usado como `ID_DEVICE` realmente seja um dispositivo, e não um observável, e vice-versa
 
 Qualquer violação resulta em erro e aborta a geração do arquivo Python.
 
+#### **2.3.2.3. Comandos Condicionais (OBSACT)**
+
+Para completar a linguagem ObsAct, foram implementados os comandos condicionais `OBSACT`, que permitem executar ações com base em condições sobre observáveis. Esses comandos correspondem a estruturas condicionais `if-else` em Python.
+
+A gramática para os comandos condicionais foi estruturada para evitar recursão infinita e ambiguidade.
+
+$OBSACT → quando \;OBS : ACT$
+
+$OBSACT → quando \;OBS : ACT \;senao \;ACT$
+
+$OBS → OBS\_COND$
+
+$OBS → OBS\_COND \;AND\;\; OBS$
+
+$OBS\_COND → ID\_OBS\;\; OPLOGIC \;\;VAL$
+
+$OPLOGIC → \;!= | == | > | < | >= | <=$
+
+
+Introduzimos um não-terminal intermediário `OBS_COND` para representar uma condição atômica (uma única comparação). A regra para `OBS` foi reestruturada para permitir múltiplas condições conectadas por `AND` sem causar recursão infinita. E por fim, criamos uma regra específica para operadores lógicos, mapeando para os tokens correspondentes.
+
+As regras de produção correspondentes foram implementadas no analisador sintático:
+
+```python
+# ---------- OPLOGIC ----------
+def p_oplogic(p):
+    '''OPLOGIC : OP_NE
+               | OP_EQ
+               | OP_GT
+               | OP_LT
+               | OP_GE
+               | OP_LE'''
+    p[0] = p[1]
+
+def p_obsact_single(p):
+    'OBSACT : QUANDO OBS DOIS_PONTOS ACT'
+    p[0] = ('obsact', p[2], p[4])
+
+def p_obsact_else(p):
+    'OBSACT : QUANDO OBS DOIS_PONTOS ACT SENAO ACT'
+    p[0] = ('obsact_else', p[2], p[4], p[6])
+
+def p_obs_single(p):
+    'OBS : OBS_COND'
+    p[0] = p[1]
+
+def p_obs_with_and(p):
+    'OBS : OBS_COND AND OBS'
+    p[0] = ('obs_and', p[1], p[3])
+
+def p_obs_cond(p):
+    'OBS_COND : ID_OBS OPLOGIC VAL'
+    id_name = p[1]
+    if id_name not in symbol_table or symbol_table[id_name] != 'ID_OBS':
+        print(f"ERRO semântico: '{id_name}' não é um observável declarado")
+        ...
+    p[0] = ('obs_cond', id_name, p[2], p[3])
+```
+
+Assim como nos comandos anteriores, o parser verifica se os observáveis usados nas condições foram declarados na seção de dispositivos. As condições com múltiplos `AND` são representadas como uma árvore, onde cada nó é uma condição atômica (`OBS_COND`) ou uma combinação de condições (`obs_and`).
+
+Para converter as estruturas condicionais em código Python, foram implementadas funções auxiliares:
+
+```python
+def obs_to_string(obs):
+    if obs[0] == 'obs_cond':
+        id_name, op, val = obs[1], obs[2], obs[3]
+        val_str = str(val)
+        return f"{id_name} {op} {val_str}"
+    elif obs[0] == 'obs_and':
+        left, right = obs[1], obs[2]
+        return f"{obs_to_string(left)} and {obs_to_string(right)}"
+
+def generate_command_code(cmd, indent_level=0):
+    indent = ' ' * 4 * indent_level
+    lines = []
+    cmd_type = cmd[0]
+
+    # ... (código para outros tipos de comandos)
+
+    elif cmd_type == 'obsact':
+        cond = obs_to_string(cmd[1])
+        act_code = generate_command_code(cmd[2], indent_level + 1)
+        lines.append(f'{indent}if {cond}:')
+        lines.append(act_code)
+
+    elif cmd_type == 'obsact_else':
+        cond = obs_to_string(cmd[1])
+        act1_code = generate_command_code(cmd[2], indent_level + 1)
+        act2_code = generate_command_code(cmd[3], indent_level + 1)
+        lines.append(f'{indent}if {cond}:')
+        lines.append(act1_code)
+        lines.append(f'{indent}else:')
+        lines.append(act2_code)
+
+    return '\n'.join(lines)
+```
+
+**`obs_to_string`**: Converte a estrutura interna de uma condição em uma string Python válida. Para condições simples, gera `id op valor`; para condições compostas, recursivamente combina as partes com `and`.
+
+ **`generate_command_code`**: Gera código Python com indentação apropriada. Para comandos condicionais, gera estruturas `if` ou `if-else` com o bloco de ação apropriadamente indentado.
+
+Os comandos condicionais são traduzidos para estruturas condicionais em Python pleo esquema:
+
+- **`quando condição : ação`** → `if condição: ação`
+- **`quando condição : ação1 senao ação2`** → `if condição: ação1 else: ação2`
+
+Conforme especificado, os comandos `OBSACT` são executados na ordem em que aparecem no arquivo fonte. A gramática não permite aninhamento de condicionais (um `if-else` dentro de outro), mas permite múltiplos blocos condicionais sequenciais:
+
+O analisador realiza várias verificações para garantir a correção dos comandos condicionais.
+Qualquer violação resulta em uma mensagem de erro clara e aborta a geração do arquivo Python.
+
+### 2.4. Integração Completa
+
+Com a implementação dos comandos condicionais, a linguagem ObsAct agora suporta todas as funcionalidades especificadas:
+
+1. **Declaração de Dispositivos e Observáveis**
+2. **Atribuição de Valores a Observáveis**
+3. **Ações sobre Dispositivos** (ligar/desligar, alertas, difusão)
+4. **Controle Condicional** baseado em valores de observáveis
+
+O analisador mantém a ordem de execução dos comandos, permitindo misturar atribuições, ações e condicionais em qualquer sequência. Todas as verificações léxicas, sintáticas e semânticas são realizadas, garantindo a geração de código Python correto e executável.
+
+## 3. Testes
+
+
+
+## 4. Conclusão
+
+O analisador desenvolvido implementa completamente a linguagem ObsAct, convertendo programas .obsact em código Python executável. Como foi possível perceber, a implementação das diferentes funcionalidades da linguagem foi gradual, mantendo a clareza do código e a robustez das verificações.
+
+O sistema demonstra os princípios fundamentais de construção de compiladores, desde a análise léxica até a geração de código, aplicados a uma linguagem de domínio específico para controle de dispositivos.

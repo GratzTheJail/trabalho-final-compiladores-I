@@ -262,7 +262,8 @@ def p_cmd_list(p):
 
 def p_cmd(p):
     '''CMD : ATTRIB
-           | ACT'''
+           | ACT
+           | OBSACT'''
     p[0] = p[1]
     commands.append(p[1])
 
@@ -345,6 +346,41 @@ def p_act_difundir_com_var(p):
         sys.exit(1)
     p[0] = ('difundir_com_var', p[3], p[4], p[7])
 
+# ---------- OBSACT ----------
+def p_oplogic(p):
+    '''OPLOGIC : OP_NE
+               | OP_EQ
+               | OP_GT
+               | OP_LT
+               | OP_GE
+               | OP_LE'''
+    p[0] = p[1]
+
+def p_obsact_single(p):
+    'OBSACT : QUANDO OBS DOIS_PONTOS ACT'
+    p[0] = ('obsact', p[2], p[4])
+
+def p_obsact_else(p):
+    'OBSACT : QUANDO OBS DOIS_PONTOS ACT SENAO ACT'
+    p[0] = ('obsact_else', p[2], p[4], p[6])
+
+def p_obs_single(p):
+    'OBS : OBS_COND'
+    p[0] = p[1]
+
+def p_obs_with_and(p):
+    'OBS : OBS_COND AND OBS'
+    p[0] = ('obs_and', p[1], p[3])
+
+def p_obs_cond(p):
+    'OBS_COND : ID_OBS OPLOGIC VAL'
+    id_name = p[1]
+    if id_name not in symbol_table or symbol_table[id_name] != 'ID_OBS':
+        print(f"ERRO semântico: '{id_name}' não é um observável declarado")
+        print("Arquivo .py NÃO gerado devido a erros na análise!")
+        sys.exit(1)
+    p[0] = ('obs_cond', id_name, p[2], p[3])
+
 def p_dev_list_n(p):
     '''DEV_LIST_N : ID_DEVICE
                   | ID_DEVICE VIRGULA DEV_LIST_N'''
@@ -375,9 +411,74 @@ parser = yacc.yacc()
 
 
 
-## ---------- PROCESSAMENTO DA SEÇÃO DEV_SEC --------
 
-## -------- LEITURA DO ARQUIVO .obsact --------
+
+## --------- FUNÇÕES AUXILIARES ---------
+def obs_to_string(obs):
+    if obs[0] == 'obs_cond':
+        id_name, op, val = obs[1], obs[2], obs[3]
+        val_str = str(val)
+        return f"{id_name} {op} {val_str}"
+    elif obs[0] == 'obs_and':
+        left, right = obs[1], obs[2]
+        return f"{obs_to_string(left)} and {obs_to_string(right)}"
+
+def generate_command_code(cmd, indent_level=0):
+    indent = ' ' * 4 * indent_level
+    lines = []
+    cmd_type = cmd[0]
+
+    if cmd_type == 'attrib':
+        var_name, value = cmd[1], cmd[2]
+        if isinstance(value, bool):
+            value_str = str(value)
+        else:
+            value_str = str(value)
+        lines.append(f'{indent}{var_name} = {value_str}')
+
+    elif cmd_type == 'execute':
+        action, device = cmd[1], cmd[2]
+        lines.append(f'{indent}{action}({device})')
+
+    elif cmd_type == 'alerta_simples':
+        device, msg = cmd[1], cmd[2]
+        lines.append(f'{indent}alerta({device}, "{msg}")')
+
+    elif cmd_type == 'alerta_com_var':
+        device, msg, var = cmd[1], cmd[2], cmd[3]
+        lines.append(f'{indent}alerta({device}, "{msg}", {var})')
+
+    elif cmd_type == 'difundir_simples':
+        msg, device_list = cmd[1], cmd[2]
+        for device in device_list:
+            lines.append(f'{indent}alerta({device}, "{msg}")')
+
+    elif cmd_type == 'difundir_com_var':
+        msg, var, device_list = cmd[1], cmd[2], cmd[3]
+        for device in device_list:
+            lines.append(f'{indent}alerta({device}, "{msg}", {var})')
+
+    elif cmd_type == 'obsact':
+        cond = obs_to_string(cmd[1])
+        act_code = generate_command_code(cmd[2], indent_level + 1)
+        lines.append(f'{indent}if {cond}:')
+        lines.append(act_code)
+
+    elif cmd_type == 'obsact_else':
+        cond = obs_to_string(cmd[1])
+        act1_code = generate_command_code(cmd[2], indent_level + 1)
+        act2_code = generate_command_code(cmd[3], indent_level + 1)
+        lines.append(f'{indent}if {cond}:')
+        lines.append(act1_code)
+        lines.append(f'{indent}else:')
+        lines.append(act2_code)
+
+    return '\n'.join(lines)
+
+
+
+
+## --------- PROCESSAMENTO DO ARQUIVO .obsact ---------
 # Lê o conteúdo do arquivo
 with open(nome_arquivo, 'r', encoding='utf-8') as f:
     data = f.read()
@@ -393,6 +494,8 @@ try:
         print("Análise sintática da seção DEV_SEC concluída com sucesso!")
         print("Dicionário de símbolos:", symbol_table)
         print("Comandos encontrados:", commands)
+
+
         ##  -------- GERAÇÃO DO ARQUIVO FINAL .PY --------
         # Código das funções em Python
         codigo_python = '''
@@ -426,39 +529,8 @@ def alerta(id_device, msg, var=None):
         
         codigo_python += '\n# Comandos executados em ordem\n'
         
-        # Processar todos os comandos na ordem em que apareceram
         for cmd in commands:
-            cmd_type = cmd[0]
-            
-            if cmd_type == 'attrib':
-                var_name, value = cmd[1], cmd[2]
-                if isinstance(value, bool):
-                    value_str = str(value)
-                else:
-                    value_str = str(value)
-                codigo_python += f'{var_name} = {value_str}\n'
-                
-            elif cmd_type == 'execute':
-                action, device = cmd[1], cmd[2]
-                codigo_python += f'{action}({device})\n'
-                
-            elif cmd_type == 'alerta_simples':
-                device, msg = cmd[1], cmd[2]
-                codigo_python += f'alerta({device}, "{msg}")\n'
-                
-            elif cmd_type == 'alerta_com_var':
-                device, msg, var = cmd[1], cmd[2], cmd[3]
-                codigo_python += f'alerta({device}, "{msg}", {var})\n'
-                
-            elif cmd_type == 'difundir_simples':
-                msg, device_list = cmd[1], cmd[2]
-                for device in device_list:
-                    codigo_python += f'alerta({device}, "{msg}")\n'
-                    
-            elif cmd_type == 'difundir_com_var':
-                msg, var, device_list = cmd[1], cmd[2], cmd[3]
-                for device in device_list:
-                    codigo_python += f'alerta({device}, "{msg}", {var})\n'
+            codigo_python += generate_command_code(cmd) + '\n'
 
         # Escreve o arquivo .py
         with open(nome_py, 'w', encoding='utf-8') as f:
