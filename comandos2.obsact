@@ -1,0 +1,15 @@
+dispositivos :
+    Lampada [ potencia ]
+    Celular[bateria]
+    Pc
+fimdispositivos
+
+execute desligar em Pc ;
+def potencia = 100;
+execute ligar em Lampada ;
+def bateria = 2;
+alerta para Lampada : "Esta escuro";
+alerta para Pc : "Celular com bateria ", bateria;
+difundir : "Bateria criticamente baixa" -> [Celular];
+difundir : "Bateria criticamente baixa" -> [Pc, Lampada];
+difundir : "Bateria em " bateria -> [Pc, Lampada];

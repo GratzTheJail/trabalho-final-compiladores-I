@@ -28,15 +28,14 @@ tokens = (
     'AND',
     'EXECUTE',
     'EM',
-    'ALERTA_PARA',
+    'ALERTA',
+    'PARA',
     'DIFUNDIR',
     'LIGAR',
     'DESLIGAR',
     'TRUE',
     'FALSE',
     'ID',
-    # 'ID_DEVICE',
-    # 'ID_OBS',
     'NUM',
     'MSG',
     'PT_VIRG',
@@ -90,7 +89,8 @@ t_SENAO = r'senao'
 t_AND = r'AND'
 t_EXECUTE = r'execute'
 t_EM = r'em'
-t_ALERTA_PARA = r'alerta para'
+t_ALERTA = r'alerta'
+t_PARA = r'para'
 t_DIFUNDIR = r'difundir'
 t_LIGAR = r'ligar'
 t_DESLIGAR = r'desligar'
@@ -131,7 +131,8 @@ def t_ID(t):
         'AND': 'AND',
         'execute': 'EXECUTE',
         'em': 'EM',
-        'alerta para': 'ALERTA_PARA',
+        'alerta': 'ALERTA',
+        'para': 'PARA',
         'difundir': 'DIFUNDIR',
         'ligar': 'LIGAR',
         'desligar': 'DESLIGAR',
@@ -158,20 +159,32 @@ def t_error(t):
 
 lexer = lex.lex()
 
+
+
+
+
+
+
+
 ## --------- ANÁLISE SINTÁTICA ---------
 # Dicionário para armazenar as variáveis encontradas
 symbol_table = {}
 # Lista para armazenar as atribuições encontradas
-assignments = []
+commands = []
 
 syntax_error_occurred = False
 
-## ---------- ANÁLISE SINTÁTICA PARA DEV_SEC --------
+## ---------- DEV_SEC --------
 
 def p_program(p):
     '''program : DEV_SEC CMD_LIST'''
     p[0] = (p[1], p[2])
     print("Análise sintática completa concluída com sucesso!")
+
+def p_program_empty(p):
+    'program : '
+    p[0] = (None, [])
+    print("Arquivo vazio - análise sintática concluída com sucesso!")
 
 def p_dev_sec(p):
     'DEV_SEC : DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS'
@@ -202,7 +215,6 @@ def p_device(p):
 
 def p_id_device(p):
     'ID_DEVICE : ID'
-    # Verifica se é uma palavra reservada
     reserved_words = ['dispositivos', 'fimdispositivos', 'def', 'quando', 'senao', 
                      'AND', 'execute', 'em', 'alerta', 'para', 'difundir', 
                      'ligar', 'desligar', 'True', 'False']
@@ -217,7 +229,6 @@ def p_id_device(p):
         print("Arquivo .py NÃO gerado devido a erros na análise!")
         p[0] = None
         sys.exit(1)
-    # Verifica se o comprimento está entre 1 e 100 caracteres
     elif len(p[1]) < 1 or len(p[1]) > 100:
         print(f"ERRO semântico: '{p[1]}' tem comprimento inválido ({len(p[1])}). Deve ter entre 1 e 100 caracteres.")
         print("Arquivo .py NÃO gerado devido a erros na análise!")
@@ -228,7 +239,6 @@ def p_id_device(p):
 
 def p_id_obs(p):
     'ID_OBS : ID'
-    # Verifica se é uma palavra reservada
     reserved_words = ['dispositivos', 'fimdispositivos', 'def', 'quando', 'senao', 
                      'AND', 'execute', 'em', 'alerta', 'para', 'difundir', 
                      'ligar', 'desligar', 'True', 'False']
@@ -240,6 +250,8 @@ def p_id_obs(p):
     else:
         p[0] = p[1]
 
+
+## ---------- CMD_LIST --------
 def p_cmd_list(p):
     '''CMD_LIST : CMD PT_VIRG CMD_LIST
                 | CMD PT_VIRG'''
@@ -249,15 +261,19 @@ def p_cmd_list(p):
         p[0] = [p[1]]
 
 def p_cmd(p):
-    '''CMD : ATTRIB'''
+    '''CMD : ATTRIB
+           | ACT'''
     p[0] = p[1]
+    commands.append(p[1])
 
+
+## ---------- ATTRIB --------
 def p_attrib(p):
     'ATTRIB : DEF ID_OBS IGUAL VAL'
     # Verifica se o ID_OBS foi declarado na seção de dispositivos
     id_name = p[2]
     if id_name and id_name in symbol_table and symbol_table[id_name] == 'ID_OBS':
-        assignments.append((id_name, p[4]))
+        # assignments.append((id_name, p[4]))
         p[0] = ('attrib', id_name, p[4])
         print(f"Atribuição válida: {id_name} = {p[4]}")
     else:
@@ -280,6 +296,71 @@ def p_bool(p):
             | FALSE'''
     p[0] = p[1] == 'True'  # Converte para valor booleano Python
 
+## ---------- ACT --------
+
+def p_action(p):
+    '''ACTION : LIGAR
+              | DESLIGAR'''
+    p[0] = p[1]
+
+def p_act_execute(p):
+    'ACT : EXECUTE ACTION EM ID_DEVICE'
+    if p[4] not in symbol_table or symbol_table[p[4]] != 'ID_DEVICE':
+        print(f"ERRO semântico: '{p[4]}' não é um dispositivo declarado")
+        print("Arquivo .py NÃO gerado devido a erros na análise!")
+        sys.exit(1)
+    p[0] = ('execute', p[2], p[4])
+
+def p_act_alerta_simples(p):
+    'ACT : ALERTA PARA ID_DEVICE DOIS_PONTOS MSG'
+    if p[3] not in symbol_table or symbol_table[p[3]] != 'ID_DEVICE':
+        print(f"ERRO semântico: '{p[3]}' não é um dispositivo declarado")
+        print("Arquivo .py NÃO gerado devido a erros na análise!")
+        sys.exit(1)
+    p[0] = ('alerta_simples', p[3], p[5])
+
+def p_act_alerta_com_var(p):
+    'ACT : ALERTA PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBS'
+    if p[3] not in symbol_table or symbol_table[p[3]] != 'ID_DEVICE':
+        print(f"ERRO semântico: '{p[3]}' não é um dispositivo declarado")
+        print("Arquivo .py NÃO gerado devido a erros na análise!")
+        sys.exit(1)
+    if p[7] not in symbol_table or symbol_table[p[7]] != 'ID_OBS':
+        print(f"ERRO semântico: '{p[7]}' não é um observável declarado")
+        print("Arquivo .py NÃO gerado devido a erros na análise!")
+        sys.exit(1)
+    p[0] = ('alerta_com_var', p[3], p[5], p[7])
+
+# Regra para ACT difundir sem ID_OBS
+def p_act_difundir_simples(p):
+    'ACT : DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COL'
+    p[0] = ('difundir_simples', p[3], p[6])
+
+# Regra para ACT difundir com ID_OBS
+def p_act_difundir_com_var(p):
+    'ACT : DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL'
+    if p[4] not in symbol_table or symbol_table[p[4]] != 'ID_OBS':
+        print(f"ERRO semântico: '{p[4]}' não é um observável declarado")
+        print("Arquivo .py NÃO gerado devido a erros na análise!")
+        sys.exit(1)
+    p[0] = ('difundir_com_var', p[3], p[4], p[7])
+
+def p_dev_list_n(p):
+    '''DEV_LIST_N : ID_DEVICE
+                  | ID_DEVICE VIRGULA DEV_LIST_N'''
+    if len(p) == 2:
+        if p[1] not in symbol_table or symbol_table[p[1]] != 'ID_DEVICE':
+            print(f"ERRO semântico: '{p[1]}' não é um dispositivo declarado")
+            print("Arquivo .py NÃO gerado devido a erros na análise!")
+            sys.exit(1)
+        p[0] = [p[1]]
+    else:
+        if p[1] not in symbol_table or symbol_table[p[1]] != 'ID_DEVICE':
+            print(f"ERRO semântico: '{p[1]}' não é um dispositivo declarado")
+            print("Arquivo .py NÃO gerado devido a erros na análise!")
+            sys.exit(1)
+        p[0] = [p[1]] + p[3]
+
 def p_error(p):
     global syntax_error_occurred
     syntax_error_occurred = True
@@ -290,7 +371,6 @@ def p_error(p):
     print("Arquivo .py NÃO gerado devido a erros na análise!")
     sys.exit(1)
 
-# Construir o parser
 parser = yacc.yacc()
 
 
@@ -303,7 +383,7 @@ with open(nome_arquivo, 'r', encoding='utf-8') as f:
     data = f.read()
 
 symbol_table.clear()
-assignments.clear()
+commands.clear()
 
 # Processa com o parser
 try:
@@ -312,7 +392,7 @@ try:
     if not syntax_error_occurred and not lexical_error_occurred and result:
         print("Análise sintática da seção DEV_SEC concluída com sucesso!")
         print("Dicionário de símbolos:", symbol_table)
-        print("Atribuições encontradas:", assignments)
+        print("Comandos encontrados:", commands)
         ##  -------- GERAÇÃO DO ARQUIVO FINAL .PY --------
         # Código das funções em Python
         codigo_python = '''
@@ -332,22 +412,53 @@ def alerta(id_device, msg, var=None):
 
 # Variáveis extraídas da seção dispositivos
 '''
-
-        # Adiciona as declarações de variáveis para cada símbolo encontrado
-        for var_name, var_type in symbol_table.items():
-            if var_name:
-                if var_type == 'ID_DEVICE':
-                    codigo_python += f'{var_name} = "{var_name}"  # {var_type}\n'
-                elif var_type == 'ID_OBS':
-                    # Inicializa ID_OBS com 0 por padrão
-                    codigo_python += f'{var_name} = 0  # {var_type}\n'
-
-        codigo_python += '\n# Atribuições da seção de comandos\n'
-        # Adiciona as atribuições encontradas
-        for var_name, value in assignments:
-            if var_name and var_name in symbol_table:
-                value_str = str(value)
+        if symbol_table:
+            # Adiciona as declarações de variáveis para cada símbolo encontrado
+            for var_name, var_type in symbol_table.items():
+                if var_name:
+                    if var_type == 'ID_DEVICE':
+                        codigo_python += f'{var_name} = "{var_name}"  # {var_type}\n'
+                    elif var_type == 'ID_OBS':
+                        codigo_python += f'{var_name} = 0  # {var_type}\n' # Inicializa ID_OBS com 0 por padrão
+        else:
+            codigo_python += '# Nenhum dispositivo declarado\n'
+        
+        
+        codigo_python += '\n# Comandos executados em ordem\n'
+        
+        # Processar todos os comandos na ordem em que apareceram
+        for cmd in commands:
+            cmd_type = cmd[0]
+            
+            if cmd_type == 'attrib':
+                var_name, value = cmd[1], cmd[2]
+                if isinstance(value, bool):
+                    value_str = str(value)
+                else:
+                    value_str = str(value)
                 codigo_python += f'{var_name} = {value_str}\n'
+                
+            elif cmd_type == 'execute':
+                action, device = cmd[1], cmd[2]
+                codigo_python += f'{action}({device})\n'
+                
+            elif cmd_type == 'alerta_simples':
+                device, msg = cmd[1], cmd[2]
+                codigo_python += f'alerta({device}, "{msg}")\n'
+                
+            elif cmd_type == 'alerta_com_var':
+                device, msg, var = cmd[1], cmd[2], cmd[3]
+                codigo_python += f'alerta({device}, "{msg}", {var})\n'
+                
+            elif cmd_type == 'difundir_simples':
+                msg, device_list = cmd[1], cmd[2]
+                for device in device_list:
+                    codigo_python += f'alerta({device}, "{msg}")\n'
+                    
+            elif cmd_type == 'difundir_com_var':
+                msg, var, device_list = cmd[1], cmd[2], cmd[3]
+                for device in device_list:
+                    codigo_python += f'alerta({device}, "{msg}", {var})\n'
 
         # Escreve o arquivo .py
         with open(nome_py, 'w', encoding='utf-8') as f:

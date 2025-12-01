@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'ABRE_COL ALERTA_PARA AND DEF DESLIGAR DIFUNDIR DISPOSITIVOS DOIS_PONTOS EM EXECUTE FALSE FECHA_COL FIMDISPOSITIVOS ID IGUAL LIGAR MSG NUM OP_EQ OP_GE OP_GT OP_LE OP_LT OP_NE PT_VIRG QUANDO SENAO SETINHA TRUE VIRGULAprogram : DEV_SEC CMD_LISTDEV_SEC : DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOSDEV_LIST : DEVICE DEV_LIST\n| DEVICEDEVICE : ID_DEVICE\n| ID_DEVICE ABRE_COL ID_OBS FECHA_COLID_DEVICE : IDID_OBS : IDCMD_LIST : CMD PT_VIRG CMD_LIST\n| CMD PT_VIRGCMD : ATTRIBATTRIB : DEF ID_OBS IGUAL VALVAL : NUM\n| BOOLBOOL : TRUE\n| FALSE'
+_lr_signature = 'ABRE_COL ALERTA AND DEF DESLIGAR DIFUNDIR DISPOSITIVOS DOIS_PONTOS EM EXECUTE FALSE FECHA_COL FIMDISPOSITIVOS ID IGUAL LIGAR MSG NUM OP_EQ OP_GE OP_GT OP_LE OP_LT OP_NE PARA PT_VIRG QUANDO SENAO SETINHA TRUE VIRGULAprogram : DEV_SEC CMD_LISTprogram : DEV_SEC : DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOSDEV_LIST : DEVICE DEV_LIST\n| DEVICEDEVICE : ID_DEVICE\n| ID_DEVICE ABRE_COL ID_OBS FECHA_COLID_DEVICE : IDID_OBS : IDCMD_LIST : CMD PT_VIRG CMD_LIST\n| CMD PT_VIRGCMD : ATTRIB\n| ACTATTRIB : DEF ID_OBS IGUAL VALVAL : NUM\n| BOOLBOOL : TRUE\n| FALSEACTION : LIGAR\n| DESLIGARACT : EXECUTE ACTION EM ID_DEVICEACT : ALERTA PARA ID_DEVICE DOIS_PONTOS MSGACT : ALERTA PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBSACT : DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COLACT : DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COLDEV_LIST_N : ID_DEVICE\n| ID_DEVICE VIRGULA DEV_LIST_N'
     
-_lr_action_items = {'DISPOSITIVOS':([0,],[3,]),'$end':([1,4,9,16,],[0,-1,-10,-9,]),'DEF':([2,9,18,],[7,7,-2,]),'DOIS_PONTOS':([3,],[8,]),'PT_VIRG':([5,6,21,22,23,24,25,],[9,-11,-12,-13,-14,-15,-16,]),'ID':([7,8,13,14,15,20,27,],[11,15,15,-5,-7,11,-6,]),'IGUAL':([10,11,],[17,-8,]),'FECHA_COL':([11,26,],[-8,27,]),'FIMDISPOSITIVOS':([12,13,14,15,19,27,],[18,-4,-5,-7,-3,-6,]),'ABRE_COL':([14,15,],[20,-7,]),'NUM':([17,],[22,]),'TRUE':([17,],[24,]),'FALSE':([17,],[25,]),}
+_lr_action_items = {'$end':([0,1,4,13,25,],[-2,0,-1,-11,-10,]),'DISPOSITIVOS':([0,],[3,]),'DEF':([2,13,30,],[8,8,-3,]),'EXECUTE':([2,13,30,],[9,9,-3,]),'ALERTA':([2,13,30,],[10,10,-3,]),'DIFUNDIR':([2,13,30,],[11,11,-3,]),'DOIS_PONTOS':([3,11,24,28,],[12,20,-8,39,]),'PT_VIRG':([5,6,7,15,24,33,34,35,36,37,38,43,51,52,56,],[13,-12,-13,-9,-8,-14,-15,-16,-17,-18,-21,-22,-23,-24,-25,]),'ID':([8,12,19,22,23,24,27,29,32,44,46,47,50,53,],[15,24,24,24,-6,-8,24,15,15,24,-7,15,24,24,]),'LIGAR':([9,],[17,]),'DESLIGAR':([9,],[18,]),'PARA':([10,],[19,]),'IGUAL':([14,15,],[26,-9,]),'SETINHA':([15,29,41,],[-9,40,45,]),'FECHA_COL':([15,24,42,48,49,54,55,],[-9,-8,46,52,-26,56,-27,]),'EM':([16,17,18,],[27,-19,-20,]),'MSG':([20,39,],[29,43,]),'FIMDISPOSITIVOS':([21,22,23,24,31,46,],[30,-5,-6,-8,-4,-7,]),'ABRE_COL':([23,24,40,45,],[32,-8,44,50,]),'VIRGULA':([24,43,49,],[-8,47,53,]),'NUM':([26,],[34,]),'TRUE':([26,],[36,]),'FALSE':([26,],[37,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'program':([0,],[1,]),'DEV_SEC':([0,],[2,]),'CMD_LIST':([2,9,],[4,16,]),'CMD':([2,9,],[5,5,]),'ATTRIB':([2,9,],[6,6,]),'ID_OBS':([7,20,],[10,26,]),'DEV_LIST':([8,13,],[12,19,]),'DEVICE':([8,13,],[13,13,]),'ID_DEVICE':([8,13,],[14,14,]),'VAL':([17,],[21,]),'BOOL':([17,],[23,]),}
+_lr_goto_items = {'program':([0,],[1,]),'DEV_SEC':([0,],[2,]),'CMD_LIST':([2,13,],[4,25,]),'CMD':([2,13,],[5,5,]),'ATTRIB':([2,13,],[6,6,]),'ACT':([2,13,],[7,7,]),'ID_OBS':([8,29,32,47,],[14,41,42,51,]),'ACTION':([9,],[16,]),'DEV_LIST':([12,22,],[21,31,]),'DEVICE':([12,22,],[22,22,]),'ID_DEVICE':([12,19,22,27,44,50,53,],[23,28,23,38,49,49,49,]),'VAL':([26,],[33,]),'BOOL':([26,],[35,]),'DEV_LIST_N':([44,50,53,],[48,54,55,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -27,20 +27,31 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> program","S'",1,None,None,None),
-  ('program -> DEV_SEC CMD_LIST','program',2,'p_program','analisador.py',172),
-  ('DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS','DEV_SEC',4,'p_dev_sec','analisador.py',177),
-  ('DEV_LIST -> DEVICE DEV_LIST','DEV_LIST',2,'p_dev_list','analisador.py',183),
-  ('DEV_LIST -> DEVICE','DEV_LIST',1,'p_dev_list','analisador.py',184),
-  ('DEVICE -> ID_DEVICE','DEVICE',1,'p_device','analisador.py',191),
-  ('DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL','DEVICE',4,'p_device','analisador.py',192),
-  ('ID_DEVICE -> ID','ID_DEVICE',1,'p_id_device','analisador.py',204),
-  ('ID_OBS -> ID','ID_OBS',1,'p_id_obs','analisador.py',216),
-  ('CMD_LIST -> CMD PT_VIRG CMD_LIST','CMD_LIST',3,'p_cmd_list','analisador.py',228),
-  ('CMD_LIST -> CMD PT_VIRG','CMD_LIST',2,'p_cmd_list','analisador.py',229),
-  ('CMD -> ATTRIB','CMD',1,'p_cmd','analisador.py',236),
-  ('ATTRIB -> DEF ID_OBS IGUAL VAL','ATTRIB',4,'p_attrib','analisador.py',240),
-  ('VAL -> NUM','VAL',1,'p_val','analisador.py',253),
-  ('VAL -> BOOL','VAL',1,'p_val','analisador.py',254),
-  ('BOOL -> TRUE','BOOL',1,'p_bool','analisador.py',258),
-  ('BOOL -> FALSE','BOOL',1,'p_bool','analisador.py',259),
+  ('program -> DEV_SEC CMD_LIST','program',2,'p_program','analisador.py',185),
+  ('program -> <empty>','program',0,'p_program_empty','analisador.py',190),
+  ('DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS','DEV_SEC',4,'p_dev_sec','analisador.py',195),
+  ('DEV_LIST -> DEVICE DEV_LIST','DEV_LIST',2,'p_dev_list','analisador.py',201),
+  ('DEV_LIST -> DEVICE','DEV_LIST',1,'p_dev_list','analisador.py',202),
+  ('DEVICE -> ID_DEVICE','DEVICE',1,'p_device','analisador.py',209),
+  ('DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL','DEVICE',4,'p_device','analisador.py',210),
+  ('ID_DEVICE -> ID','ID_DEVICE',1,'p_id_device','analisador.py',222),
+  ('ID_OBS -> ID','ID_OBS',1,'p_id_obs','analisador.py',246),
+  ('CMD_LIST -> CMD PT_VIRG CMD_LIST','CMD_LIST',3,'p_cmd_list','analisador.py',261),
+  ('CMD_LIST -> CMD PT_VIRG','CMD_LIST',2,'p_cmd_list','analisador.py',262),
+  ('CMD -> ATTRIB','CMD',1,'p_cmd','analisador.py',269),
+  ('CMD -> ACT','CMD',1,'p_cmd','analisador.py',270),
+  ('ATTRIB -> DEF ID_OBS IGUAL VAL','ATTRIB',4,'p_attrib','analisador.py',277),
+  ('VAL -> NUM','VAL',1,'p_val','analisador.py',295),
+  ('VAL -> BOOL','VAL',1,'p_val','analisador.py',296),
+  ('BOOL -> TRUE','BOOL',1,'p_bool','analisador.py',300),
+  ('BOOL -> FALSE','BOOL',1,'p_bool','analisador.py',301),
+  ('ACTION -> LIGAR','ACTION',1,'p_action','analisador.py',307),
+  ('ACTION -> DESLIGAR','ACTION',1,'p_action','analisador.py',308),
+  ('ACT -> EXECUTE ACTION EM ID_DEVICE','ACT',4,'p_act_execute','analisador.py',312),
+  ('ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS MSG','ACT',5,'p_act_alerta_simples','analisador.py',320),
+  ('ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBS','ACT',7,'p_act_alerta_com_var','analisador.py',328),
+  ('ACT -> DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COL','ACT',7,'p_act_difundir_simples','analisador.py',341),
+  ('ACT -> DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL','ACT',8,'p_act_difundir_com_var','analisador.py',346),
+  ('DEV_LIST_N -> ID_DEVICE','DEV_LIST_N',1,'p_dev_list_n','analisador.py',354),
+  ('DEV_LIST_N -> ID_DEVICE VIRGULA DEV_LIST_N','DEV_LIST_N',3,'p_dev_list_n','analisador.py',355),
 ]

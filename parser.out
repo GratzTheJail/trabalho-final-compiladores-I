@@ -2,14 +2,7 @@ Created by PLY version 3.11 (http://www.dabeaz.com/ply)
 
 Unused terminals:
 
-    ALERTA_PARA
     AND
-    DESLIGAR
-    DIFUNDIR
-    EM
-    EXECUTE
-    LIGAR
-    MSG
     OP_EQ
     OP_GE
     OP_GT
@@ -18,75 +11,88 @@ Unused terminals:
     OP_NE
     QUANDO
     SENAO
-    SETINHA
-    VIRGULA
 
 Grammar
 
 Rule 0     S' -> program
 Rule 1     program -> DEV_SEC CMD_LIST
-Rule 2     DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS
-Rule 3     DEV_LIST -> DEVICE DEV_LIST
-Rule 4     DEV_LIST -> DEVICE
-Rule 5     DEVICE -> ID_DEVICE
-Rule 6     DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL
-Rule 7     ID_DEVICE -> ID
-Rule 8     ID_OBS -> ID
-Rule 9     CMD_LIST -> CMD PT_VIRG CMD_LIST
-Rule 10    CMD_LIST -> CMD PT_VIRG
-Rule 11    CMD -> ATTRIB
-Rule 12    ATTRIB -> DEF ID_OBS IGUAL VAL
-Rule 13    VAL -> NUM
-Rule 14    VAL -> BOOL
-Rule 15    BOOL -> TRUE
-Rule 16    BOOL -> FALSE
+Rule 2     program -> <empty>
+Rule 3     DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS
+Rule 4     DEV_LIST -> DEVICE DEV_LIST
+Rule 5     DEV_LIST -> DEVICE
+Rule 6     DEVICE -> ID_DEVICE
+Rule 7     DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL
+Rule 8     ID_DEVICE -> ID
+Rule 9     ID_OBS -> ID
+Rule 10    CMD_LIST -> CMD PT_VIRG CMD_LIST
+Rule 11    CMD_LIST -> CMD PT_VIRG
+Rule 12    CMD -> ATTRIB
+Rule 13    CMD -> ACT
+Rule 14    ATTRIB -> DEF ID_OBS IGUAL VAL
+Rule 15    VAL -> NUM
+Rule 16    VAL -> BOOL
+Rule 17    BOOL -> TRUE
+Rule 18    BOOL -> FALSE
+Rule 19    ACTION -> LIGAR
+Rule 20    ACTION -> DESLIGAR
+Rule 21    ACT -> EXECUTE ACTION EM ID_DEVICE
+Rule 22    ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS MSG
+Rule 23    ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBS
+Rule 24    ACT -> DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COL
+Rule 25    ACT -> DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL
+Rule 26    DEV_LIST_N -> ID_DEVICE
+Rule 27    DEV_LIST_N -> ID_DEVICE VIRGULA DEV_LIST_N
 
 Terminals, with rules where they appear
 
-ABRE_COL             : 6
-ALERTA_PARA          : 
+ABRE_COL             : 7 24 25
+ALERTA               : 22 23
 AND                  : 
-DEF                  : 12
-DESLIGAR             : 
-DIFUNDIR             : 
-DISPOSITIVOS         : 2
-DOIS_PONTOS          : 2
-EM                   : 
-EXECUTE              : 
-FALSE                : 16
-FECHA_COL            : 6
-FIMDISPOSITIVOS      : 2
-ID                   : 7 8
-IGUAL                : 12
-LIGAR                : 
-MSG                  : 
-NUM                  : 13
+DEF                  : 14
+DESLIGAR             : 20
+DIFUNDIR             : 24 25
+DISPOSITIVOS         : 3
+DOIS_PONTOS          : 3 22 23 24 25
+EM                   : 21
+EXECUTE              : 21
+FALSE                : 18
+FECHA_COL            : 7 24 25
+FIMDISPOSITIVOS      : 3
+ID                   : 8 9
+IGUAL                : 14
+LIGAR                : 19
+MSG                  : 22 23 24 25
+NUM                  : 15
 OP_EQ                : 
 OP_GE                : 
 OP_GT                : 
 OP_LE                : 
 OP_LT                : 
 OP_NE                : 
-PT_VIRG              : 9 10
+PARA                 : 22 23
+PT_VIRG              : 10 11
 QUANDO               : 
 SENAO                : 
-SETINHA              : 
-TRUE                 : 15
-VIRGULA              : 
+SETINHA              : 24 25
+TRUE                 : 17
+VIRGULA              : 23 27
 error                : 
 
 Nonterminals, with rules where they appear
 
-ATTRIB               : 11
-BOOL                 : 14
-CMD                  : 9 10
-CMD_LIST             : 1 9
-DEVICE               : 3 4
-DEV_LIST             : 2 3
+ACT                  : 13
+ACTION               : 21
+ATTRIB               : 12
+BOOL                 : 16
+CMD                  : 10 11
+CMD_LIST             : 1 10
+DEVICE               : 4 5
+DEV_LIST             : 3 4
+DEV_LIST_N           : 24 25 27
 DEV_SEC              : 1
-ID_DEVICE            : 5 6
-ID_OBS               : 6 12
-VAL                  : 12
+ID_DEVICE            : 6 7 21 22 23 26 27
+ID_OBS               : 7 14 23 25
+VAL                  : 14
 program              : 0
 
 Parsing method: LALR
@@ -95,8 +101,10 @@ state 0
 
     (0) S' -> . program
     (1) program -> . DEV_SEC CMD_LIST
-    (2) DEV_SEC -> . DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS
+    (2) program -> .
+    (3) DEV_SEC -> . DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS
 
+    $end            reduce using rule 2 (program -> .)
     DISPOSITIVOS    shift and go to state 3
 
     program                        shift and go to state 1
@@ -111,22 +119,32 @@ state 1
 state 2
 
     (1) program -> DEV_SEC . CMD_LIST
-    (9) CMD_LIST -> . CMD PT_VIRG CMD_LIST
-    (10) CMD_LIST -> . CMD PT_VIRG
-    (11) CMD -> . ATTRIB
-    (12) ATTRIB -> . DEF ID_OBS IGUAL VAL
+    (10) CMD_LIST -> . CMD PT_VIRG CMD_LIST
+    (11) CMD_LIST -> . CMD PT_VIRG
+    (12) CMD -> . ATTRIB
+    (13) CMD -> . ACT
+    (14) ATTRIB -> . DEF ID_OBS IGUAL VAL
+    (21) ACT -> . EXECUTE ACTION EM ID_DEVICE
+    (22) ACT -> . ALERTA PARA ID_DEVICE DOIS_PONTOS MSG
+    (23) ACT -> . ALERTA PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBS
+    (24) ACT -> . DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COL
+    (25) ACT -> . DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL
 
-    DEF             shift and go to state 7
+    DEF             shift and go to state 8
+    EXECUTE         shift and go to state 9
+    ALERTA          shift and go to state 10
+    DIFUNDIR        shift and go to state 11
 
     CMD_LIST                       shift and go to state 4
     CMD                            shift and go to state 5
     ATTRIB                         shift and go to state 6
+    ACT                            shift and go to state 7
 
 state 3
 
-    (2) DEV_SEC -> DISPOSITIVOS . DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS
+    (3) DEV_SEC -> DISPOSITIVOS . DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS
 
-    DOIS_PONTOS     shift and go to state 8
+    DOIS_PONTOS     shift and go to state 12
 
 
 state 4
@@ -138,208 +156,469 @@ state 4
 
 state 5
 
-    (9) CMD_LIST -> CMD . PT_VIRG CMD_LIST
-    (10) CMD_LIST -> CMD . PT_VIRG
+    (10) CMD_LIST -> CMD . PT_VIRG CMD_LIST
+    (11) CMD_LIST -> CMD . PT_VIRG
 
-    PT_VIRG         shift and go to state 9
+    PT_VIRG         shift and go to state 13
 
 
 state 6
 
-    (11) CMD -> ATTRIB .
+    (12) CMD -> ATTRIB .
 
-    PT_VIRG         reduce using rule 11 (CMD -> ATTRIB .)
+    PT_VIRG         reduce using rule 12 (CMD -> ATTRIB .)
 
 
 state 7
 
-    (12) ATTRIB -> DEF . ID_OBS IGUAL VAL
-    (8) ID_OBS -> . ID
+    (13) CMD -> ACT .
 
-    ID              shift and go to state 11
+    PT_VIRG         reduce using rule 13 (CMD -> ACT .)
 
-    ID_OBS                         shift and go to state 10
 
 state 8
 
-    (2) DEV_SEC -> DISPOSITIVOS DOIS_PONTOS . DEV_LIST FIMDISPOSITIVOS
-    (3) DEV_LIST -> . DEVICE DEV_LIST
-    (4) DEV_LIST -> . DEVICE
-    (5) DEVICE -> . ID_DEVICE
-    (6) DEVICE -> . ID_DEVICE ABRE_COL ID_OBS FECHA_COL
-    (7) ID_DEVICE -> . ID
+    (14) ATTRIB -> DEF . ID_OBS IGUAL VAL
+    (9) ID_OBS -> . ID
 
     ID              shift and go to state 15
 
-    DEV_LIST                       shift and go to state 12
-    DEVICE                         shift and go to state 13
-    ID_DEVICE                      shift and go to state 14
+    ID_OBS                         shift and go to state 14
 
 state 9
 
-    (9) CMD_LIST -> CMD PT_VIRG . CMD_LIST
-    (10) CMD_LIST -> CMD PT_VIRG .
-    (9) CMD_LIST -> . CMD PT_VIRG CMD_LIST
-    (10) CMD_LIST -> . CMD PT_VIRG
-    (11) CMD -> . ATTRIB
-    (12) ATTRIB -> . DEF ID_OBS IGUAL VAL
+    (21) ACT -> EXECUTE . ACTION EM ID_DEVICE
+    (19) ACTION -> . LIGAR
+    (20) ACTION -> . DESLIGAR
 
-    $end            reduce using rule 10 (CMD_LIST -> CMD PT_VIRG .)
-    DEF             shift and go to state 7
+    LIGAR           shift and go to state 17
+    DESLIGAR        shift and go to state 18
 
-    CMD                            shift and go to state 5
-    CMD_LIST                       shift and go to state 16
-    ATTRIB                         shift and go to state 6
+    ACTION                         shift and go to state 16
 
 state 10
 
-    (12) ATTRIB -> DEF ID_OBS . IGUAL VAL
+    (22) ACT -> ALERTA . PARA ID_DEVICE DOIS_PONTOS MSG
+    (23) ACT -> ALERTA . PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBS
 
-    IGUAL           shift and go to state 17
+    PARA            shift and go to state 19
 
 
 state 11
 
-    (8) ID_OBS -> ID .
+    (24) ACT -> DIFUNDIR . DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COL
+    (25) ACT -> DIFUNDIR . DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL
 
-    IGUAL           reduce using rule 8 (ID_OBS -> ID .)
-    FECHA_COL       reduce using rule 8 (ID_OBS -> ID .)
+    DOIS_PONTOS     shift and go to state 20
 
 
 state 12
 
-    (2) DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST . FIMDISPOSITIVOS
+    (3) DEV_SEC -> DISPOSITIVOS DOIS_PONTOS . DEV_LIST FIMDISPOSITIVOS
+    (4) DEV_LIST -> . DEVICE DEV_LIST
+    (5) DEV_LIST -> . DEVICE
+    (6) DEVICE -> . ID_DEVICE
+    (7) DEVICE -> . ID_DEVICE ABRE_COL ID_OBS FECHA_COL
+    (8) ID_DEVICE -> . ID
 
-    FIMDISPOSITIVOS shift and go to state 18
+    ID              shift and go to state 24
 
+    DEV_LIST                       shift and go to state 21
+    DEVICE                         shift and go to state 22
+    ID_DEVICE                      shift and go to state 23
 
 state 13
 
-    (3) DEV_LIST -> DEVICE . DEV_LIST
-    (4) DEV_LIST -> DEVICE .
-    (3) DEV_LIST -> . DEVICE DEV_LIST
-    (4) DEV_LIST -> . DEVICE
-    (5) DEVICE -> . ID_DEVICE
-    (6) DEVICE -> . ID_DEVICE ABRE_COL ID_OBS FECHA_COL
-    (7) ID_DEVICE -> . ID
+    (10) CMD_LIST -> CMD PT_VIRG . CMD_LIST
+    (11) CMD_LIST -> CMD PT_VIRG .
+    (10) CMD_LIST -> . CMD PT_VIRG CMD_LIST
+    (11) CMD_LIST -> . CMD PT_VIRG
+    (12) CMD -> . ATTRIB
+    (13) CMD -> . ACT
+    (14) ATTRIB -> . DEF ID_OBS IGUAL VAL
+    (21) ACT -> . EXECUTE ACTION EM ID_DEVICE
+    (22) ACT -> . ALERTA PARA ID_DEVICE DOIS_PONTOS MSG
+    (23) ACT -> . ALERTA PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBS
+    (24) ACT -> . DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COL
+    (25) ACT -> . DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL
 
-    FIMDISPOSITIVOS reduce using rule 4 (DEV_LIST -> DEVICE .)
-    ID              shift and go to state 15
+    $end            reduce using rule 11 (CMD_LIST -> CMD PT_VIRG .)
+    DEF             shift and go to state 8
+    EXECUTE         shift and go to state 9
+    ALERTA          shift and go to state 10
+    DIFUNDIR        shift and go to state 11
 
-    DEVICE                         shift and go to state 13
-    DEV_LIST                       shift and go to state 19
-    ID_DEVICE                      shift and go to state 14
+    CMD                            shift and go to state 5
+    CMD_LIST                       shift and go to state 25
+    ATTRIB                         shift and go to state 6
+    ACT                            shift and go to state 7
 
 state 14
 
-    (5) DEVICE -> ID_DEVICE .
-    (6) DEVICE -> ID_DEVICE . ABRE_COL ID_OBS FECHA_COL
+    (14) ATTRIB -> DEF ID_OBS . IGUAL VAL
 
-    ID              reduce using rule 5 (DEVICE -> ID_DEVICE .)
-    FIMDISPOSITIVOS reduce using rule 5 (DEVICE -> ID_DEVICE .)
-    ABRE_COL        shift and go to state 20
+    IGUAL           shift and go to state 26
 
 
 state 15
 
-    (7) ID_DEVICE -> ID .
+    (9) ID_OBS -> ID .
 
-    ABRE_COL        reduce using rule 7 (ID_DEVICE -> ID .)
-    ID              reduce using rule 7 (ID_DEVICE -> ID .)
-    FIMDISPOSITIVOS reduce using rule 7 (ID_DEVICE -> ID .)
+    IGUAL           reduce using rule 9 (ID_OBS -> ID .)
+    SETINHA         reduce using rule 9 (ID_OBS -> ID .)
+    FECHA_COL       reduce using rule 9 (ID_OBS -> ID .)
+    PT_VIRG         reduce using rule 9 (ID_OBS -> ID .)
 
 
 state 16
 
-    (9) CMD_LIST -> CMD PT_VIRG CMD_LIST .
+    (21) ACT -> EXECUTE ACTION . EM ID_DEVICE
 
-    $end            reduce using rule 9 (CMD_LIST -> CMD PT_VIRG CMD_LIST .)
+    EM              shift and go to state 27
 
 
 state 17
 
-    (12) ATTRIB -> DEF ID_OBS IGUAL . VAL
-    (13) VAL -> . NUM
-    (14) VAL -> . BOOL
-    (15) BOOL -> . TRUE
-    (16) BOOL -> . FALSE
+    (19) ACTION -> LIGAR .
 
-    NUM             shift and go to state 22
-    TRUE            shift and go to state 24
-    FALSE           shift and go to state 25
+    EM              reduce using rule 19 (ACTION -> LIGAR .)
 
-    VAL                            shift and go to state 21
-    BOOL                           shift and go to state 23
 
 state 18
 
-    (2) DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS .
+    (20) ACTION -> DESLIGAR .
 
-    DEF             reduce using rule 2 (DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS .)
+    EM              reduce using rule 20 (ACTION -> DESLIGAR .)
 
 
 state 19
 
-    (3) DEV_LIST -> DEVICE DEV_LIST .
+    (22) ACT -> ALERTA PARA . ID_DEVICE DOIS_PONTOS MSG
+    (23) ACT -> ALERTA PARA . ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBS
+    (8) ID_DEVICE -> . ID
 
-    FIMDISPOSITIVOS reduce using rule 3 (DEV_LIST -> DEVICE DEV_LIST .)
+    ID              shift and go to state 24
 
+    ID_DEVICE                      shift and go to state 28
 
 state 20
 
-    (6) DEVICE -> ID_DEVICE ABRE_COL . ID_OBS FECHA_COL
-    (8) ID_OBS -> . ID
+    (24) ACT -> DIFUNDIR DOIS_PONTOS . MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COL
+    (25) ACT -> DIFUNDIR DOIS_PONTOS . MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL
 
-    ID              shift and go to state 11
+    MSG             shift and go to state 29
 
-    ID_OBS                         shift and go to state 26
 
 state 21
 
-    (12) ATTRIB -> DEF ID_OBS IGUAL VAL .
+    (3) DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST . FIMDISPOSITIVOS
 
-    PT_VIRG         reduce using rule 12 (ATTRIB -> DEF ID_OBS IGUAL VAL .)
+    FIMDISPOSITIVOS shift and go to state 30
 
 
 state 22
 
-    (13) VAL -> NUM .
+    (4) DEV_LIST -> DEVICE . DEV_LIST
+    (5) DEV_LIST -> DEVICE .
+    (4) DEV_LIST -> . DEVICE DEV_LIST
+    (5) DEV_LIST -> . DEVICE
+    (6) DEVICE -> . ID_DEVICE
+    (7) DEVICE -> . ID_DEVICE ABRE_COL ID_OBS FECHA_COL
+    (8) ID_DEVICE -> . ID
 
-    PT_VIRG         reduce using rule 13 (VAL -> NUM .)
+    FIMDISPOSITIVOS reduce using rule 5 (DEV_LIST -> DEVICE .)
+    ID              shift and go to state 24
 
+    DEVICE                         shift and go to state 22
+    DEV_LIST                       shift and go to state 31
+    ID_DEVICE                      shift and go to state 23
 
 state 23
 
-    (14) VAL -> BOOL .
+    (6) DEVICE -> ID_DEVICE .
+    (7) DEVICE -> ID_DEVICE . ABRE_COL ID_OBS FECHA_COL
 
-    PT_VIRG         reduce using rule 14 (VAL -> BOOL .)
+    ID              reduce using rule 6 (DEVICE -> ID_DEVICE .)
+    FIMDISPOSITIVOS reduce using rule 6 (DEVICE -> ID_DEVICE .)
+    ABRE_COL        shift and go to state 32
 
 
 state 24
 
-    (15) BOOL -> TRUE .
+    (8) ID_DEVICE -> ID .
 
-    PT_VIRG         reduce using rule 15 (BOOL -> TRUE .)
+    ABRE_COL        reduce using rule 8 (ID_DEVICE -> ID .)
+    ID              reduce using rule 8 (ID_DEVICE -> ID .)
+    FIMDISPOSITIVOS reduce using rule 8 (ID_DEVICE -> ID .)
+    DOIS_PONTOS     reduce using rule 8 (ID_DEVICE -> ID .)
+    PT_VIRG         reduce using rule 8 (ID_DEVICE -> ID .)
+    VIRGULA         reduce using rule 8 (ID_DEVICE -> ID .)
+    FECHA_COL       reduce using rule 8 (ID_DEVICE -> ID .)
 
 
 state 25
 
-    (16) BOOL -> FALSE .
+    (10) CMD_LIST -> CMD PT_VIRG CMD_LIST .
 
-    PT_VIRG         reduce using rule 16 (BOOL -> FALSE .)
+    $end            reduce using rule 10 (CMD_LIST -> CMD PT_VIRG CMD_LIST .)
 
 
 state 26
 
-    (6) DEVICE -> ID_DEVICE ABRE_COL ID_OBS . FECHA_COL
+    (14) ATTRIB -> DEF ID_OBS IGUAL . VAL
+    (15) VAL -> . NUM
+    (16) VAL -> . BOOL
+    (17) BOOL -> . TRUE
+    (18) BOOL -> . FALSE
 
-    FECHA_COL       shift and go to state 27
+    NUM             shift and go to state 34
+    TRUE            shift and go to state 36
+    FALSE           shift and go to state 37
 
+    VAL                            shift and go to state 33
+    BOOL                           shift and go to state 35
 
 state 27
 
-    (6) DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL .
+    (21) ACT -> EXECUTE ACTION EM . ID_DEVICE
+    (8) ID_DEVICE -> . ID
 
-    ID              reduce using rule 6 (DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL .)
-    FIMDISPOSITIVOS reduce using rule 6 (DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL .)
+    ID              shift and go to state 24
+
+    ID_DEVICE                      shift and go to state 38
+
+state 28
+
+    (22) ACT -> ALERTA PARA ID_DEVICE . DOIS_PONTOS MSG
+    (23) ACT -> ALERTA PARA ID_DEVICE . DOIS_PONTOS MSG VIRGULA ID_OBS
+
+    DOIS_PONTOS     shift and go to state 39
+
+
+state 29
+
+    (24) ACT -> DIFUNDIR DOIS_PONTOS MSG . SETINHA ABRE_COL DEV_LIST_N FECHA_COL
+    (25) ACT -> DIFUNDIR DOIS_PONTOS MSG . ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL
+    (9) ID_OBS -> . ID
+
+    SETINHA         shift and go to state 40
+    ID              shift and go to state 15
+
+    ID_OBS                         shift and go to state 41
+
+state 30
+
+    (3) DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS .
+
+    DEF             reduce using rule 3 (DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS .)
+    EXECUTE         reduce using rule 3 (DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS .)
+    ALERTA          reduce using rule 3 (DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS .)
+    DIFUNDIR        reduce using rule 3 (DEV_SEC -> DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS .)
+
+
+state 31
+
+    (4) DEV_LIST -> DEVICE DEV_LIST .
+
+    FIMDISPOSITIVOS reduce using rule 4 (DEV_LIST -> DEVICE DEV_LIST .)
+
+
+state 32
+
+    (7) DEVICE -> ID_DEVICE ABRE_COL . ID_OBS FECHA_COL
+    (9) ID_OBS -> . ID
+
+    ID              shift and go to state 15
+
+    ID_OBS                         shift and go to state 42
+
+state 33
+
+    (14) ATTRIB -> DEF ID_OBS IGUAL VAL .
+
+    PT_VIRG         reduce using rule 14 (ATTRIB -> DEF ID_OBS IGUAL VAL .)
+
+
+state 34
+
+    (15) VAL -> NUM .
+
+    PT_VIRG         reduce using rule 15 (VAL -> NUM .)
+
+
+state 35
+
+    (16) VAL -> BOOL .
+
+    PT_VIRG         reduce using rule 16 (VAL -> BOOL .)
+
+
+state 36
+
+    (17) BOOL -> TRUE .
+
+    PT_VIRG         reduce using rule 17 (BOOL -> TRUE .)
+
+
+state 37
+
+    (18) BOOL -> FALSE .
+
+    PT_VIRG         reduce using rule 18 (BOOL -> FALSE .)
+
+
+state 38
+
+    (21) ACT -> EXECUTE ACTION EM ID_DEVICE .
+
+    PT_VIRG         reduce using rule 21 (ACT -> EXECUTE ACTION EM ID_DEVICE .)
+
+
+state 39
+
+    (22) ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS . MSG
+    (23) ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS . MSG VIRGULA ID_OBS
+
+    MSG             shift and go to state 43
+
+
+state 40
+
+    (24) ACT -> DIFUNDIR DOIS_PONTOS MSG SETINHA . ABRE_COL DEV_LIST_N FECHA_COL
+
+    ABRE_COL        shift and go to state 44
+
+
+state 41
+
+    (25) ACT -> DIFUNDIR DOIS_PONTOS MSG ID_OBS . SETINHA ABRE_COL DEV_LIST_N FECHA_COL
+
+    SETINHA         shift and go to state 45
+
+
+state 42
+
+    (7) DEVICE -> ID_DEVICE ABRE_COL ID_OBS . FECHA_COL
+
+    FECHA_COL       shift and go to state 46
+
+
+state 43
+
+    (22) ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS MSG .
+    (23) ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS MSG . VIRGULA ID_OBS
+
+    PT_VIRG         reduce using rule 22 (ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS MSG .)
+    VIRGULA         shift and go to state 47
+
+
+state 44
+
+    (24) ACT -> DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL . DEV_LIST_N FECHA_COL
+    (26) DEV_LIST_N -> . ID_DEVICE
+    (27) DEV_LIST_N -> . ID_DEVICE VIRGULA DEV_LIST_N
+    (8) ID_DEVICE -> . ID
+
+    ID              shift and go to state 24
+
+    DEV_LIST_N                     shift and go to state 48
+    ID_DEVICE                      shift and go to state 49
+
+state 45
+
+    (25) ACT -> DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA . ABRE_COL DEV_LIST_N FECHA_COL
+
+    ABRE_COL        shift and go to state 50
+
+
+state 46
+
+    (7) DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL .
+
+    ID              reduce using rule 7 (DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL .)
+    FIMDISPOSITIVOS reduce using rule 7 (DEVICE -> ID_DEVICE ABRE_COL ID_OBS FECHA_COL .)
+
+
+state 47
+
+    (23) ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA . ID_OBS
+    (9) ID_OBS -> . ID
+
+    ID              shift and go to state 15
+
+    ID_OBS                         shift and go to state 51
+
+state 48
+
+    (24) ACT -> DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N . FECHA_COL
+
+    FECHA_COL       shift and go to state 52
+
+
+state 49
+
+    (26) DEV_LIST_N -> ID_DEVICE .
+    (27) DEV_LIST_N -> ID_DEVICE . VIRGULA DEV_LIST_N
+
+    FECHA_COL       reduce using rule 26 (DEV_LIST_N -> ID_DEVICE .)
+    VIRGULA         shift and go to state 53
+
+
+state 50
+
+    (25) ACT -> DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL . DEV_LIST_N FECHA_COL
+    (26) DEV_LIST_N -> . ID_DEVICE
+    (27) DEV_LIST_N -> . ID_DEVICE VIRGULA DEV_LIST_N
+    (8) ID_DEVICE -> . ID
+
+    ID              shift and go to state 24
+
+    DEV_LIST_N                     shift and go to state 54
+    ID_DEVICE                      shift and go to state 49
+
+state 51
+
+    (23) ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBS .
+
+    PT_VIRG         reduce using rule 23 (ACT -> ALERTA PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBS .)
+
+
+state 52
+
+    (24) ACT -> DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COL .
+
+    PT_VIRG         reduce using rule 24 (ACT -> DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COL .)
+
+
+state 53
+
+    (27) DEV_LIST_N -> ID_DEVICE VIRGULA . DEV_LIST_N
+    (26) DEV_LIST_N -> . ID_DEVICE
+    (27) DEV_LIST_N -> . ID_DEVICE VIRGULA DEV_LIST_N
+    (8) ID_DEVICE -> . ID
+
+    ID              shift and go to state 24
+
+    ID_DEVICE                      shift and go to state 49
+    DEV_LIST_N                     shift and go to state 55
+
+state 54
+
+    (25) ACT -> DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N . FECHA_COL
+
+    FECHA_COL       shift and go to state 56
+
+
+state 55
+
+    (27) DEV_LIST_N -> ID_DEVICE VIRGULA DEV_LIST_N .
+
+    FECHA_COL       reduce using rule 27 (DEV_LIST_N -> ID_DEVICE VIRGULA DEV_LIST_N .)
+
+
+state 56
+
+    (25) ACT -> DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL .
+
+    PT_VIRG         reduce using rule 25 (ACT -> DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL .)
 

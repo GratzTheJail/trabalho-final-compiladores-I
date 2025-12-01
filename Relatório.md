@@ -74,7 +74,7 @@ Todas as regras a partir de (incluindo) $NUM$ são novas regras que definem os t
 ### 2.1. Leitura do arquivo
 O analisador (analisador.py) quando rodado lê do terminal o nome do arquivo .obsact a ser lido e então gera um arquivo **.py** correspondente (compilado) de mesmo nome. No início de cada arquivo são definidas as funções padrão da linguagem.
 
-```
+```python
 def ligar(id_device):
     print(id_device + " ligado!")
 
@@ -94,7 +94,7 @@ def alerta(id_device, msg, var=None):
 
 Para a análise léxica primeiramente definimos a lista de tokens que será usada:
 
-```
+```python
 tokens = (
     'DISPOSITIVOS', 'FIMDISPOSITIVOS', 'DEF', 'QUANDO', 'SENAO', 'AND', 'EXECUTE', 'EM', 'ALERTA_PARA', 'DIFUNDIR', 'LIGAR', 'DESLIGAR', 'TRUE', 'FALSE', 'ID', 'ID_OBS', 'NUM', 'MSG', 'PT_VIRG', 'DOIS_PONTOS', 'IGUAL', 'SETINHA', 'VIRGULA', 'ABRE_COL', 'FECHA_COL', 'OP_NE', 'OP_EQ', 'OP_GT', 'OP_LT', 'OP_GE', 'OP_LE'
 )
@@ -139,7 +139,7 @@ $ID\_OBS →$ ```^[a-zA-Z][a-zA-Z0-9]{0,99}$```
 
 Para a criação da aplicação (inicialmente apenas desta parte criamos as regras, note que a gramática está incompleta por enquanto e será completada posteriormente):
 
-```
+```python
 def p_program(p):
     '''program : DEV_SEC'''
     p[0] = p[1]
@@ -183,7 +183,7 @@ programa.
 
 Para garantir a consistência de ambos os tipos de `ID`, tanto `ID_OBS` quanto `ID_DEVICE`, foram adicionados verificações adicionais nas funções próprias. `ID_DEVICE`, por exemplo, não pode conter números, e esta verificação é feita. (Além é claro de que, como não podem ser palavras reservadas é necessário realizar também esta verificação.)
 
-```
+```python
 def p_id_device(p):
     'ID_DEVICE : ID'
     # Verifica se é uma palavra reservada
@@ -220,22 +220,18 @@ dispositivos) como variáveis em python com o nome correspondente e tendo
 como valor atribuido uma string com o próprio nome (que pode ser alterado
 posteriormente sem complicações, pois python não é estaticamente tipado).
 
-```
+```python
 for var_name, var_type in symbol_table.items():
     codigo_python += f'{var_name} = "{var_name}"  # {var_type}\n'
 ```
 
 #### **2.3.2. Comandos**
 
-- MUDAR A REGRA DE `ID_DEVICE` PARA CHECAR SE TEM NÚMERO OU NÃO 
-
-- REGRA `ID_OBS` IGUAL ZERO
-
-1) **Atribuição**
+**2.3.2.1. Atribuição**
 
 Para o comando de atribuição foram adicionadas algumas regras. (Por enquanto a gramática está incompleta, pois só foi aplicado o comando de atribuição).
 
-```
+```python
 def p_cmd_list(p):
     '''CMD_LIST : CMD PT_VIRG CMD_LIST
                 | CMD PT_VIRG'''
@@ -281,7 +277,7 @@ Para fazer alguma atribuição é checado se o símbolo consta no dicionário ex
 
 As atribuições são então escritas após as definições da seção de dispositivos. Para garantir que as variáveis `ID_OBS` são sempre iguais a 0 quando não há atribuição como foi pedido elas são sempre inicializadas como sendo iguais a zero e posteriormente, se houver atribuição, seu valor é mudado como consta nela.
 
-```
+```python
 # Adiciona as declarações de variáveis para cada símbolo encontrado
         for var_name, var_type in symbol_table.items():
             if var_name:
@@ -301,5 +297,166 @@ As atribuições são então escritas após as definições da seção de dispos
 
 Como o próprio parser garante que os números e os booleanos sejam escritos corretamente (também como são escritos em python), não há necessidade de qualquer conversão deste tipo.
 
-2. **Ação**
+**2.3.2.2. Ação**
+
+Para expandir a linguagem com comandos de ação, foram implementadas as regras correspondentes aos comandos `ACT`, conforme definido na gramática. Esses comandos permitem realizar ações sobre dispositivos, como ligar/desligar, enviar alertas e difundir mensagens.
+
+Para permitir a execução de comandos na ordem em que aparecem no arquivo fonte, a estrutura de dados foi modificada: em vez de uma lista separada apenas para atribuições (`assignments`), agora utiliza-se uma lista única de comandos (`commands`) que armazena tanto atribuições (`ATTRIB`) quanto ações (`ACT`).
+
+```python
+commands = []  # Lista que armazena todos os comandos na ordem em que aparecem
+```
+
+A regra `p_cmd` foi atualizada para aceitar ambos os tipos:
+
+```python
+def p_cmd(p):
+    '''CMD : ATTRIB
+           | ACT'''
+    p[0] = p[1]
+    commands.append(p[1])  # Adiciona à lista de comandos
+```
+
+**Tipos de Ações**
+
+Foram implementadas as seguintes ações, conforme a gramática:
+
+**a) Execute**: Comando para ligar ou desligar um dispositivo.
+
+
+$ACT → execute \; ACTION\; em\; ID\_DEVICE$
+
+$ACTION → ligar | desligar$
+
+
+Regra correspondente:
+
+```python
+def p_act_execute(p):
+    'ACT : EXECUTE ACTION EM ID_DEVICE'
+    if p[4] not in symbol_table or symbol_table[p[4]] != 'ID_DEVICE':
+        print(f"ERRO semântico: '{p[4]}' não é um dispositivo declarado")
+        ...
+    p[0] = ('execute', p[2], p[4])
+```
+
+**b) Alerta**:
+Comando para enviar uma mensagem a um dispositivo, opcionalmente incluindo um observável:
+
+
+$ACT → alerta\; para\; ID\_DEVICE : MSG$
+
+$ACT → alerta\; para\; ID\_DEVICE : MSG ,\; ID\_OBS$
+
+
+O token composto `ALERTA_PARA` foi separado em dois tokens individuais (`ALERTA` e `PARA`) para maior robustez e evitar conflitos no analisador léxico.
+
+Regras correspondentes:
+
+```python
+def p_act_alerta_simples(p):
+    'ACT : ALERTA PARA ID_DEVICE DOIS_PONTOS MSG'
+    if p[3] not in symbol_table or symbol_table[p[3]] != 'ID_DEVICE':
+        print(f"ERRO semântico: '{p[3]}' não é um dispositivo declarado")
+        ...
+    p[0] = ('alerta_simples', p[3], p[5])  # dispositivo, mensagem
+
+def p_act_alerta_com_var(p):
+    'ACT : ALERTA PARA ID_DEVICE DOIS_PONTOS MSG VIRGULA ID_OBS'
+    if p[3] not in symbol_table or symbol_table[p[3]] != 'ID_DEVICE':
+        print(f"ERRO semântico: '{p[3]}' não é um dispositivo declarado")
+        ...
+    if p[7] not in symbol_table or symbol_table[p[7]] != 'ID_OBS':
+        print(f"ERRO semântico: '{p[7]}' não é um observável declarado")
+        ...
+    p[0] = ('alerta_com_var', p[3], p[5], p[7])  # dispositivo, mensagem, observável
+```
+
+#### **c) Difundir**
+Comando para enviar uma mensagem a uma lista de dispositivos:
+
+
+$ACT → difundir : MSG\; -> [DEV\_LIST\_N]$
+
+$ACT → difundir : MSG \;\;ID\_OBS \;-> [DEV\_LIST\_N]$
+
+
+Regras correspondentes:
+
+```python
+def p_act_difundir_simples(p):
+    'ACT : DIFUNDIR DOIS_PONTOS MSG SETINHA ABRE_COL DEV_LIST_N FECHA_COL'
+    p[0] = ('difundir_simples', p[3], p[6])  # mensagem, lista de dispositivos
+
+def p_act_difundir_com_var(p):
+    'ACT : DIFUNDIR DOIS_PONTOS MSG ID_OBS SETINHA ABRE_COL DEV_LIST_N FECHA_COL'
+    if p[4] not in symbol_table or symbol_table[p[4]] != 'ID_OBS':
+        print(f"ERRO semântico: '{p[4]}' não é um observável declarado")
+        ...
+    p[0] = ('difundir_com_var', p[3], p[4], p[7])  # mensagem, observável, lista de dispositivos
+```
+
+**d) Lista de Dispositivos para Difusão**:
+Regra para processar listas de dispositivos nos comandos de difusão:
+
+```python
+def p_dev_list_n(p):
+    '''DEV_LIST_N : ID_DEVICE
+                  | ID_DEVICE VIRGULA DEV_LIST_N'''
+    if len(p) == 2:
+        if p[1] not in symbol_table or symbol_table[p[1]] != 'ID_DEVICE':
+            print(f"ERRO semântico: '{p[1]}' não é um dispositivo declarado")
+            ...
+        p[0] = [p[1]]
+    else:
+        if p[1] not in symbol_table or symbol_table[p[1]] != 'ID_DEVICE':
+            print(f"ERRO semântico: '{p[1]}' não é um dispositivo declarado")
+            ...
+        p[0] = [p[1]] + p[3]
+```
+
+**Geração de Código Python**
+
+Cada tipo de ação é traduzido para chamadas das funções Python definidas no início do arquivo gerado:
+
+```python
+# Processar todos os comandos na ordem em que apareceram
+for cmd in commands:
+    cmd_type = cmd[0]
+    
+    if cmd_type == 'attrib':
+        # Atribuição (já existente)
+        ...
+        
+    elif cmd_type == 'execute':
+        action, device = cmd[1], cmd[2]
+        codigo_python += f'{action}({device})\n'
+        
+    elif cmd_type == 'alerta_simples':
+        device, msg = cmd[1], cmd[2]
+        codigo_python += f'alerta({device}, "{msg}")\n'
+        
+    elif cmd_type == 'alerta_com_var':
+        device, msg, var = cmd[1], cmd[2], cmd[3]
+        codigo_python += f'alerta({device}, "{msg}", {var})\n'
+        
+    elif cmd_type == 'difundir_simples':
+        msg, device_list = cmd[1], cmd[2]
+        for device in device_list:
+            codigo_python += f'alerta({device}, "{msg}")\n'
+            
+    elif cmd_type == 'difundir_com_var':
+        msg, var, device_list = cmd[1], cmd[2], cmd[3]
+        for device in device_list:
+            codigo_python += f'alerta({device}, "{msg}", {var})\n'
+```
+
+**Verificações Semânticas**:
+Todas as ações incluem verificações semânticas para garantir que
+
+1. **Dispositivos referenciados** estejam declarados na seção `DEV_SEC`
+2. **Observáveis referenciados** estejam declarados (se aplicável)
+3. **Tipos corretos**: que um identificador usado como `ID_DEVICE` realmente seja um dispositivo, e não um observável, e vice-versa
+
+Qualquer violação resulta em erro e aborta a geração do arquivo Python.
 
