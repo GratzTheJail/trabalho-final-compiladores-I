@@ -1,0 +1,12 @@
+dispositivos: 
+    termometro[temp]
+    higrometro[hum]
+    ventoinha
+    luz[sensorLuz]
+fimdispositivos
+def temp = 22;
+def hum = 45;
+def sensorLuz = 300;
+quando temp >= 25: execute ligar em ventoinha;
+quando sensorLuz < 200: execute ligar em luz;
+alerta para termometro: "Temperatura: " , temp;

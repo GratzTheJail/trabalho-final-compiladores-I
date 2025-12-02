@@ -1,0 +1,4 @@
+dispositivos: sala cozinha quarto[temperatura] banheiro fimdispositivos
+difundir: "Alarme incendio" -> [sala, cozinha, quarto, banheiro];
+difundir: "Temperatura normal" temperatura -> [sala, quarto];
+alerta para cozinha: "Mensagem individual";

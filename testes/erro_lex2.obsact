@@ -1,0 +1,4 @@
+dispositivos: 123sensor fimdispositivos      
+def 99problemas = 99;                        
+def preço = 100;                             
+alerta para @dispositivo: "Teste";           

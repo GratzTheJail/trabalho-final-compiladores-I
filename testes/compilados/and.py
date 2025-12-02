@@ -14,10 +14,20 @@ def alerta(id_device, msg, var=None):
         print(msg + " " + str(var))
 
 # Variáveis extraídas da seção dispositivos
-Termometro = "Termometro"  # ID_DEVICE
-temperatura = 0  # ID_OBS
-Ventilador = "Ventilador"  # ID_DEVICE
+sistema = "sistema"  # ID_DEVICE
 status = 0  # ID_OBS
+sensorA = "sensorA"  # ID_DEVICE
+valorA = 0  # ID_OBS
+sensorB = "sensorB"  # ID_DEVICE
+valorB = 0  # ID_OBS
 
-# Atribuições da seção de comandos
+# Comandos executados em ordem
+valorA = 100
+valorB = 50
 status = True
+if valorA > 80 and valorB < 60 and status == True:
+    ligar(sistema)
+if valorA <= 80 and valorB >= 60:
+    desligar(sistema)
+else:
+    alerta(sensorA, "Condicao nao atendida")

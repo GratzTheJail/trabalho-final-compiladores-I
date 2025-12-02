@@ -14,11 +14,6 @@ def alerta(id_device, msg, var=None):
         print(msg + " " + str(var))
 
 # Variáveis extraídas da seção dispositivos
-Termometro = "Termometro"  # ID_DEVICE
-temperatura = "temperatura"  # ID_OBS
-Lampada = "Lampada"  # ID_DEVICE
+# Nenhum dispositivo declarado
 
-# Prints das variáveis identificadas
-print("Termometro - ID_DEVICE")
-print("temperatura - ID_OBS")
-print("Lampada - ID_DEVICE")
+# Comandos executados em ordem

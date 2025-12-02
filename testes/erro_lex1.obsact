@@ -1,0 +1,5 @@
+dispositivos: teste fimdispositivos
+def x = 10;
+quando x === 10: execute ligar em teste;
+quando x =! 5: execute desligar em teste;
+quando x >>= 3: alerta para teste: "Erro";

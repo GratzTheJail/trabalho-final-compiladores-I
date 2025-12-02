@@ -1,0 +1,6 @@
+dispositivos :
+    Monitor
+    Celular [ movimento ]
+    Higrometro [ umidade ]
+    Lampada [ potencia ]
+fimdispositivos

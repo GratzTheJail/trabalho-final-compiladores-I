@@ -5,8 +5,11 @@ import ply.yacc as yacc
 
 ## ---------- LEITURA DO ARQUIVO --------
 
-# Solicita o nome do arquivo .obsact
-nome_arquivo = input("Digite o nome do arquivo .obsact (sem a extensão): ")
+# Aceita argumento da linha de comando OU pede entrada para nome do arquivo
+if len(sys.argv) > 1:
+    nome_arquivo = sys.argv[1]
+else:
+    nome_arquivo = input("Digite o nome do arquivo .obsact (sem a extensão): ")
 
 nome_arquivo += '.obsact'
 
@@ -15,8 +18,21 @@ if not os.path.exists(nome_arquivo):
     print("Erro: Arquivo não encontrado!")
     exit()
 
-# Gera o nome do arquivo .py
-nome_py = nome_arquivo.replace('.obsact', '.py')
+# nome_py = nome_arquivo.replace('.obsact', '.py')
+
+## Gera o nome do arquivo .py
+base_name = nome_arquivo.replace('.obsact', '.py')
+if '/' in base_name or '\\' in base_name:
+    file_name_only = base_name.split('/')[-1].split('\\')[-1]
+else:
+    file_name_only = base_name
+
+# Cria o diretório 'compilados' se não existir
+compilados_dir = 'compilados'
+if not os.path.exists(compilados_dir):
+    os.makedirs(compilados_dir)
+
+nome_py = os.path.join(compilados_dir, file_name_only )
 
 ## ---------- ANÁLISE LÉXICA --------
 tokens = (
@@ -108,7 +124,7 @@ def t_INVALID_ID(t):
     sys.exit(1)
 
 def t_MSG(t):
-    r'\"[a-zA-Z0-9 ]{1,100}\"'
+    r'\"[\x20-\x7E]{0,100}\"'  # Aceita qualquer caractere ASCII imprimível
     t.value = t.value[1:-1]  # Remove as aspas
     return t
 
@@ -189,8 +205,8 @@ def p_program_empty(p):
 def p_dev_sec(p):
     'DEV_SEC : DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS'
     p[0] = p[3]
-    print("Dicionário de variáveis encontradas:")
-    print(symbol_table)
+    # print("Dicionário de variáveis encontradas:")
+    # print(symbol_table)
 
 def p_dev_list(p):
     '''DEV_LIST : DEVICE DEV_LIST
@@ -276,7 +292,7 @@ def p_attrib(p):
     if id_name and id_name in symbol_table and symbol_table[id_name] == 'ID_OBS':
         # assignments.append((id_name, p[4]))
         p[0] = ('attrib', id_name, p[4])
-        print(f"Atribuição válida: {id_name} = {p[4]}")
+        # print(f"Atribuição válida: {id_name} = {p[4]}")
     else:
         if id_name:
             if id_name not in symbol_table:
@@ -492,8 +508,8 @@ try:
 
     if not syntax_error_occurred and not lexical_error_occurred and result:
         print("Análise sintática da seção DEV_SEC concluída com sucesso!")
-        print("Dicionário de símbolos:", symbol_table)
-        print("Comandos encontrados:", commands)
+        # print("Dicionário de símbolos:", symbol_table)
+        # print("Comandos encontrados:", commands)
 
 
         ##  -------- GERAÇÃO DO ARQUIVO FINAL .PY --------
@@ -536,7 +552,7 @@ def alerta(id_device, msg, var=None):
         with open(nome_py, 'w', encoding='utf-8') as f:
             f.write(codigo_python)
 
-        print(f"Arquivo {nome_py} gerado com sucesso!")
+        print(f"Arquivo {nome_py} gerado com SUCESSO!")
 
 except Exception as e:
     print(f"ERRO durante a análise sintática: {e}")

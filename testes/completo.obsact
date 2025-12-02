@@ -1,0 +1,9 @@
+dispositivos: lampada sensor[temperatura] arcondicionado atuador[umidade] fimdispositivos
+def temperatura = 25;
+def umidade = 60;
+quando temperatura > 30 AND umidade < 70: execute ligar em arcondicionado senao execute desligar em arcondicionado;
+alerta para lampada: "Temperatura atual" , temperatura;
+difundir: "Alerta geral" umidade -> [lampada, sensor, arcondicionado];
+execute ligar em lampada;
+alerta para sensor: "Sistema ativo";
+difundir: "Mensagem sem variavel" -> [lampada, arcondicionado];

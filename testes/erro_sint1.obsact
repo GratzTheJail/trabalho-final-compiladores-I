@@ -1,0 +1,5 @@
+dispositivos: lampada fimdispositivos
+def x = 10  # falta ponto e vírgula
+quando x > 5 execute ligar em lampada  
+alerta para lampada "mensagem";  
+execute ligar lampada;  

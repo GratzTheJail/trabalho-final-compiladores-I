@@ -1,0 +1,5 @@
+dispositivos: sistema[ativo] luz[estado] fimdispositivos
+def ativo = True;
+def estado = False;
+quando ativo == True: execute ligar em sistema;
+quando estado != True: execute ligar em luz senao execute desligar em luz;

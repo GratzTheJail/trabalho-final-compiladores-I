@@ -3,6 +3,8 @@
 
 *Guilherme Melo Gratz | 2211068*
 
+*O projeto pode ser encontrado por completo no [GitHub](https://github.com/GratzTheJail/trabalho-final-compiladores-I)*
+
 ## 1. Gramática
 A gramática que foi fornecida no exercício foi modificada para:
 
@@ -46,13 +48,13 @@ $ACT ION → ligar \;|\; desligar$
 
 $DEV\_LIST\_N → ID\_DEV ICE \;|\; ID\_DEV ICE ,\; DEV\_LIST\_N$
 
-$NUM →$ ```[1-9][0-9]*```
+$NUM →$ ```0|[1-9][0-9]*```
 
 $BOOL → True\;|\;False$
 
 $OPLOGIC → \;\;!=\;|\;==\;|\;>\;|\;<\;|\;>=\;|\;<=$
 
-$MSG → \;$```"^[a-zA-Z0-9 ]{1,100}$"```
+$MSG → \;$```"^[\x20-\x7E]{1,100}$"```
 
 $ID\_DEVICE →$ ```^[a-zA-Z]{1,100}$```
 
@@ -586,9 +588,13 @@ Com a implementação dos comandos condicionais, a linguagem ObsAct agora suport
 
 O analisador mantém a ordem de execução dos comandos, permitindo misturar atribuições, ações e condicionais em qualquer sequência. Todas as verificações léxicas, sintáticas e semânticas são realizadas, garantindo a geração de código Python correto e executável.
 
-## 3. Testes
+## 3. Testes e Como Rodar
 
+Para rodar um teste em um programa na mesma subpasta do analisador apenas rode o script .py normalmente e ele perguntará o nome do arquivo sem extensão. Para rodar vários testes de uma vez coloque os arquivos de teste na subpasta 'testes' e rode o script 'run.py'.
 
+Foram feitos vários testes que estão disponibilizados na entrega juntamente com este código. Para rodá-los e analisar cada código gerado, siga as instruções anteriores. O programa conseguiu capturar e compilar corretamente todos os códigos ObsAct disponibilizados no enunciado e outros criados especificamente para testar seus limites.
+
+*Obs.: Todos testes com 'erro' ou 'errado' no nome devem falhar. O teste do enunciado de número 6 falhou por erro no arquivo ObsAct do enunciado. Faltou um 'em' entre `ACTION` e `ID_DEVICE`. O teste 9 também falhou, pois, nesta implementação se assumiu que a área de comandos não pode estar vazia caso o arquivo inteiro não seja vazio.*
 
 ## 4. Conclusão
 

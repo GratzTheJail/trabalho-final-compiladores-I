@@ -1,0 +1,6 @@
+dispositivos: sistema[status] sensorA[valorA] sensorB[valorB] fimdispositivos
+def valorA = 100;
+def valorB = 50;
+def status = True;
+quando valorA > 80 AND valorB < 60 AND status == True: execute ligar em sistema;
+quando valorA <= 80 AND valorB >= 60: execute desligar em sistema senao alerta para sensorA: "Condicao nao atendida";
