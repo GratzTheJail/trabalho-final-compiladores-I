@@ -203,7 +203,12 @@ def p_id_device(p):
         ...
     # Verifica se o comprimento está entre 1 e 100 caracteres
     elif len(p[1]) < 1 or len(p[1]) > 100:
-        print(f"ERRO semântico: '{p[1]}' tem comprimento inválido ({len(p[1])}). Deve ter entre 1 e 100 caracteres.")
+        print(f"ERRO semântico: '{p[1]}' tem comprimento inválido ({len(p[1])}). Deve ter entre 1 e 
+            if id_name not in symbol_table:
+                print(f"ERRO semântico: '{id_name}' não foi declarado")
+            elif symbol_table[id_name] != 'ID_OBS':
+                print(f"ERRO semântico: '{id_name}' não é um observável (é {symbol_table[id_name]})")
+            print("Arquivo .py NÃO100 caracteres.")
         ...
     else:
         p[0] = p[1]
