@@ -13,12 +13,9 @@ else:
 
 nome_arquivo += '.obsact'
 
-# Verifica se o arquivo existe
 if not os.path.exists(nome_arquivo):
     print("Erro: Arquivo não encontrado!")
     exit()
-
-# nome_py = nome_arquivo.replace('.obsact', '.py')
 
 ## Gera o nome do arquivo .py
 base_name = nome_arquivo.replace('.obsact', '.py')
@@ -161,7 +158,6 @@ def t_ID(t):
         t.type = 'ID'
     return t
 
-# Ignorar espaços em branco
 t_ignore = ' \t\n'
 
 def t_error(t):
@@ -205,8 +201,6 @@ def p_program_empty(p):
 def p_dev_sec(p):
     'DEV_SEC : DISPOSITIVOS DOIS_PONTOS DEV_LIST FIMDISPOSITIVOS'
     p[0] = p[3]
-    # print("Dicionário de variáveis encontradas:")
-    # print(symbol_table)
 
 def p_dev_list(p):
     '''DEV_LIST : DEVICE DEV_LIST
@@ -290,9 +284,7 @@ def p_attrib(p):
     # Verifica se o ID_OBS foi declarado na seção de dispositivos
     id_name = p[2]
     if id_name and id_name in symbol_table and symbol_table[id_name] == 'ID_OBS':
-        # assignments.append((id_name, p[4]))
         p[0] = ('attrib', id_name, p[4])
-        # print(f"Atribuição válida: {id_name} = {p[4]}")
     else:
         if id_name:
             if id_name not in symbol_table:
@@ -508,12 +500,8 @@ try:
 
     if not syntax_error_occurred and not lexical_error_occurred and result:
         print("Análise sintática da seção DEV_SEC concluída com sucesso!")
-        # print("Dicionário de símbolos:", symbol_table)
-        # print("Comandos encontrados:", commands)
-
-
+        
         ##  -------- GERAÇÃO DO ARQUIVO FINAL .PY --------
-        # Código das funções em Python
         codigo_python = '''
 def ligar(id_device):
     print(id_device + " ligado!")
